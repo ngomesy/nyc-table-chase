@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Castle Siege FPS</title>
+    <link rel="stylesheet" href="fps.css" />
+  </head>
+  <body>
+    <main class="wrap">
+      <header>
+        <h1>Castle Siege FPS</h1>
+        <p class="subtitle">Descend through the undead fortress and rescue the princess each level.</p>
+      </header>
+
+      <section class="hud">
+        <div>Level: <span id="level">1</span></div>
+        <div>Health: <span id="health">100</span></div>
+        <div>Weapon: <span id="weapon">Pistol</span></div>
+        <div>Ammo: <span id="ammo">24</span></div>
+        <div>Zombies: <span id="zombies">0</span></div>
+        <div>Objective: <span id="objective">Eliminate all zombies</span></div>
+      </section>
+
+      <canvas id="game" width="960" height="540" aria-label="Pixel FPS game"></canvas>
+
+      <section class="instructions">
+        <p><strong>Move:</strong> W A S D</p>
+        <p><strong>Turn:</strong> Mouse (click canvas) or Left/Right</p>
+        <p><strong>Shoot:</strong> Click or Space</p>
+        <p><strong>Swap Weapon:</strong> E (near pickup)</p>
+        <p><strong>Restart:</strong> R</p>
+      </section>
+
+      <p id="status" class="status">Click canvas or press Enter to begin.</p>
+    </main>
+    <script src="fps.js"></script>
+  </body>
+</html>

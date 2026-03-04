@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Toronto Sky Glide</title>
+    <link rel="stylesheet" href="toronto_flappy.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="topbar">
+        <h1>Toronto Sky Glide</h1>
+        <div class="hud">
+          <span>Score: <strong id="score">0</strong></span>
+          <span>Level: <strong id="level">1</strong></span>
+          <span>Best: <strong id="best">0</strong></span>
+        </div>
+      </header>
+
+      <section class="stage">
+        <canvas id="game" width="1024" height="576" aria-label="Toronto flappy game"></canvas>
+
+        <div id="menu" class="overlay">
+          <div class="panel">
+            <h2 id="menu-title">Choose Your Toronto Bird</h2>
+            <p class="sub">Only controls in-game: Arrow Up and Arrow Down</p>
+            <div class="bird-picker" id="bird-picker"></div>
+            <button id="start-btn" type="button">Start Flight</button>
+            <p class="hint">Fly over or under realistic park obstacles in Trinity Bellwoods.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="toronto_flappy.js"></script>
+  </body>
+</html>
