@@ -392,11 +392,20 @@ h3 {
   transition: 160ms ease;
 }
 
+.static-pill {
+  cursor: default;
+}
+
 .filter-button:hover,
 .filter-button:focus-visible,
 .pill-link:hover,
 .pill-link:focus-visible {
   transform: translateY(-1px);
+}
+
+.static-pill:hover,
+.static-pill:focus-visible {
+  transform: none;
 }
 
 .filter-button.is-active {

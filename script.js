@@ -5,20 +5,24 @@ const {
   neighborhoodCenters,
   restaurants,
   bars,
+  guinnessSpots,
   mapsSearchUrl,
 } = window.tripPlannerData;
 
 const restaurantGridEl = document.getElementById("restaurant-grid");
 const barGridEl = document.getElementById("bar-grid");
+const guinnessGridEl = document.getElementById("guinness-grid");
 const restaurantCuisineEl = document.getElementById("restaurant-cuisine-filter");
 const restaurantCountEl = document.getElementById("restaurant-count");
 const barCountEl = document.getElementById("bar-count");
+const guinnessCountEl = document.getElementById("guinness-count");
 const mapCountEl = document.getElementById("map-count");
 const mapDetailEl = document.getElementById("map-detail");
 const arrivalCountdownEl = document.getElementById("arrival-countdown");
 const alarmListEl = document.getElementById("alarm-list");
 const restaurantPanelEl = document.getElementById("restaurant-panel");
 const barPanelEl = document.getElementById("bar-panel");
+const guinnessPanelEl = document.getElementById("guinness-panel");
 
 const boardViewButtons = [...document.querySelectorAll("[data-board-view]")];
 const restaurantFilterButtons = [...document.querySelectorAll("[data-restaurant-filter]")];
@@ -333,6 +337,11 @@ function formatDistance(distance) {
   return `Approx. ${distance.toFixed(1)} mi from hotel`;
 }
 
+function getNeighborhoodDistance(neighborhoodKey) {
+  const center = neighborhoodCenters[neighborhoodKey] || neighborhoodCenters.soho;
+  return distanceInMiles(hotelData.lat, hotelData.lng, center.lat, center.lng);
+}
+
 function createMapIcon(item, selected) {
   return L.divIcon({
     className: "map-marker-shell",
@@ -523,6 +532,45 @@ function renderBars() {
     .join("");
 }
 
+function renderGuinness() {
+  guinnessCountEl.textContent = `${guinnessSpots.length} Guinness spots`;
+
+  guinnessGridEl.innerHTML = guinnessSpots
+    .map(
+      (spot) => `
+        <article class="venue-card guinness-card">
+          <div class="venue-header">
+            <div>
+              <div class="priority-pill dive">#${spot.rank}</div>
+              <h3>${spot.name}</h3>
+              <div class="venue-meta">${spot.neighborhood} • ${spot.borough}</div>
+              <div class="distance-line">${formatDistance(getNeighborhoodDistance(spot.neighborhoodKey))}</div>
+            </div>
+          </div>
+
+          <p class="venue-summary">${spot.note}</p>
+
+          <div class="booking-box">
+            <div class="booking-label is-portal">Location</div>
+            <div class="booking-note">${spot.location}</div>
+          </div>
+
+          <div class="venue-actions">
+            <a
+              class="action-link primary"
+              href="${mapsSearchUrl(`${spot.name} ${spot.location} ${spot.borough} NYC`)}"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Open on Maps
+            </a>
+          </div>
+        </article>
+      `,
+    )
+    .join("");
+}
+
 function buildDirectionsUrl(destination) {
   const params = new URLSearchParams({
     api: "1",
@@ -681,9 +729,9 @@ function tickCountdowns() {
 
 function setBoardView(nextView) {
   boardState.view = nextView;
-  const showRestaurants = nextView === "restaurants";
-  restaurantPanelEl.hidden = !showRestaurants;
-  barPanelEl.hidden = showRestaurants;
+  restaurantPanelEl.hidden = nextView !== "restaurants";
+  barPanelEl.hidden = nextView !== "bars";
+  guinnessPanelEl.hidden = nextView !== "guinness";
   boardViewButtons.forEach((button) =>
     button.classList.toggle("is-active", button.dataset.boardView === nextView),
   );
@@ -738,6 +786,7 @@ renderHeroStats();
 renderAlarmBoard();
 renderRestaurants();
 renderBars();
+renderGuinness();
 renderMap();
 tickCountdowns();
 setInterval(tickCountdowns, 1000);

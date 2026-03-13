@@ -27,7 +27,7 @@
         <span>THE BROOME HOTEL HQ</span>
         <span>APRIL 15-19, 2026</span>
         <span>LOWER MANHATTAN + WILLIAMSBURG + BROOKLYN</span>
-        <a href="guinness.html">GUINNESS GUIDE</a>
+        <a href="#guinness-panel" data-open-view="guinness">GUINNESS TAB</a>
       </div>
 
       <header class="hero">
@@ -41,7 +41,7 @@
           </p>
 
           <div class="hero-links">
-            <a class="hero-link primary" href="guinness.html">Open Guinness Guide</a>
+            <a class="hero-link primary" href="#guinness-panel" data-open-view="guinness">Open Guinness Tab</a>
             <a class="hero-link" href="#restaurant-panel" data-open-view="restaurants">Jump to Restaurants</a>
             <a class="hero-link" href="#bar-panel" data-open-view="bars">Jump to Bars</a>
           </div>
@@ -119,6 +119,7 @@
           <div class="board-tabs">
             <button class="filter-button is-active" data-board-view="restaurants" type="button">Restaurants</button>
             <button class="filter-button" data-board-view="bars" type="button">Bars</button>
+            <button class="filter-button" data-board-view="guinness" type="button">Guinness</button>
           </div>
 
           <div id="restaurant-panel" class="board-panel">
@@ -144,7 +145,7 @@
                   <span class="select-label">Cuisine</span>
                   <select id="restaurant-cuisine-filter"></select>
                 </label>
-                <a class="pill-link" href="guinness.html">Open Guinness page</a>
+                <a class="pill-link" href="#guinness-panel" data-open-view="guinness">Open Guinness tab</a>
               </div>
             </div>
 
@@ -173,6 +174,22 @@
 
             <div id="bar-grid" class="venue-grid bar-grid" aria-live="polite"></div>
           </div>
+
+          <div id="guinness-panel" class="board-panel" hidden>
+            <div class="subsection-heading">
+              <div>
+                <p class="eyebrow">Guinness</p>
+                <h3>10 pours worth remembering</h3>
+              </div>
+              <div class="inline-count" id="guinness-count">Loading Guinness spots…</div>
+            </div>
+
+            <div class="filter-row">
+              <span class="pill-link static-pill">No reservations here. Just the best pours in your zone.</span>
+            </div>
+
+            <div id="guinness-grid" class="venue-grid guinness-grid" aria-live="polite"></div>
+          </div>
         </section>
 
         <section class="section note-section">
@@ -200,10 +217,10 @@
               </p>
             </article>
             <article class="note-card">
-              <h3>Guinness page</h3>
+              <h3>Guinness tab</h3>
               <p>
-                The Guinness list lives on a separate page so the main restaurant-and-bar board
-                stays usable. It is built specifically for your lower-Manhattan / Brooklyn zone.
+                Guinness now lives inside the same board as the restaurants and bars, so you can
+                pivot to pint mode without leaving the main planner.
               </p>
             </article>
           </div>
