@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NYC Guinness Guide | April 2026</title>
+    <meta
+      name="description"
+      content="Top 10 Guinness pours in lower Manhattan, Williamsburg, and Brooklyn."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <div class="ticker">
+        <a href="index.html">BACK TO MAIN BOARD</a>
+        <span>TOP 10 GUINNESS POURS</span>
+        <span>LOWER MANHATTAN + BROOKLYN + WILLIAMSBURG</span>
+      </div>
+
+      <header class="hero guinness-hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Separate page on purpose</p>
+          <h1>Guinness guide</h1>
+          <p class="lede">
+            Just the pints. No reservation logic, no clutter, no fake precision. This is the
+            shortlist of bars worth remembering when the night wants to become Guinness-shaped.
+          </p>
+        </div>
+
+        <aside class="hero-panel">
+          <p class="panel-label">How to use it</p>
+          <h2>Pick the zone, then pick the room</h2>
+          <p class="panel-copy">
+            Manhattan for convenience, Williamsburg for after-dinner pivots, and Brooklyn if you
+            want the bar itself to feel more local than destination-driven.
+          </p>
+        </aside>
+      </header>
+
+      <main>
+        <section class="section">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Top 10</p>
+              <h2>Best Guinness pours in your trip zone</h2>
+            </div>
+          </div>
+          <div id="guinness-grid" class="venue-grid guinness-grid" aria-live="polite"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="venue-data.js"></script>
+    <script src="guinness.js"></script>
+  </body>
+</html>

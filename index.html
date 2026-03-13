@@ -6,7 +6,7 @@
     <title>NYC Table Chase | April 15-19, 2026</title>
     <meta
       name="description"
-      content="A ranked NYC restaurant and bar booking board for a SoHo stay from April 15-19, 2026."
+      content="A reservation-first NYC restaurant and bar board for a SoHo stay from April 15-19, 2026."
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -14,25 +14,30 @@
       href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@500;600;700&display=swap"
       rel="stylesheet"
     />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      crossorigin=""
+    />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <div class="page-shell">
       <div class="ticker">
-        <span>SOHO HQ</span>
+        <span>THE BROOME HOTEL HQ</span>
         <span>APRIL 15-19, 2026</span>
         <span>LOWER MANHATTAN + WILLIAMSBURG + BROOKLYN</span>
-        <span>TABLES WORTH SETTING ALARMS FOR</span>
+        <a href="guinness.html">GUINNESS GUIDE</a>
       </div>
 
       <header class="hero">
         <div class="hero-copy">
-          <p class="eyebrow">The Broome Hotel booking board</p>
-          <h1>New York table chase</h1>
+          <p class="eyebrow">NYC Table Chase</p>
+          <h1>Reservations, dives, and pints worth the detour</h1>
           <p class="lede">
-            Same layout, harder edge. This pass ranks the board, doubles the venue count, and adds
-            a hotel-centered map so you can move from Broome Street to the right reservation,
-            cocktail, or backup play without wasting trip time.
+            This version splits the trip cleanly: a much bigger restaurant board, a bigger bar
+            board with actual dives mixed in, cuisine filters, rough spend-for-two numbers, and a
+            real map of the city instead of a sketch.
           </p>
 
           <div class="hero-meta">
@@ -46,76 +51,52 @@
             </div>
             <div class="meta-card">
               <span class="meta-label">Board size</span>
-              <span class="meta-value">26 ranked restaurants + bars</span>
+              <span class="meta-value">38 restaurants • 18 bars • 10 Guinness spots</span>
             </div>
           </div>
         </div>
 
         <aside class="hero-panel">
-          <p class="panel-label">First alarms</p>
-          <h2 id="first-drop-day">Loading</h2>
-          <p id="first-drop-summary" class="panel-copy">Checking the earliest reservation drops.</p>
-          <div id="first-drop-list" class="first-drop-list" aria-live="polite"></div>
+          <p class="panel-label">First booking alarms</p>
+          <h2>What opens first</h2>
+          <p class="panel-copy">
+            Exact drops stay live here. Portal-only places stay on the board, but only the venues
+            with known release windows show countdowns.
+          </p>
+          <div id="alarm-list" class="alarm-list" aria-live="polite"></div>
         </aside>
       </header>
 
       <main>
-        <section class="section">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">Ranking board</p>
-              <h2>What to chase first</h2>
-            </div>
-          </div>
-          <div id="tier-strip" class="tier-strip" aria-live="polite"></div>
-        </section>
-
         <section class="section map-section">
           <div class="section-heading">
             <div>
               <p class="eyebrow">Map view</p>
-              <h2>From the hotel outward</h2>
+              <h2>Actual map from the hotel outward</h2>
             </div>
+            <div class="inline-count" id="map-count">Loading map…</div>
           </div>
 
-          <div class="map-layout">
-            <div class="map-frame">
-              <div class="map-legend">
-                <span><i class="legend-dot restaurant"></i>Restaurant</span>
-                <span><i class="legend-dot bar"></i>Bar</span>
-                <span><i class="legend-dot hotel"></i>Hotel</span>
-              </div>
+          <div class="filter-row">
+            <button class="filter-button is-active" data-map-filter="all" type="button">All map pins</button>
+            <button class="filter-button" data-map-filter="restaurants" type="button">Restaurants</button>
+            <button class="filter-button" data-map-filter="bars" type="button">Bars</button>
+            <button class="filter-button" data-map-filter="dives" type="button">Dive bars</button>
+          </div>
 
-              <div class="map-stage">
-                <svg class="city-map" viewBox="0 0 860 620" aria-hidden="true">
-                  <rect x="0" y="0" width="860" height="620" rx="28" class="map-water" />
-                  <path
-                    class="borough manhattan"
-                    d="M247 76 C305 58, 344 90, 365 146 C382 188, 395 258, 389 315 C384 363, 363 439, 319 514 C292 560, 261 581, 232 571 C206 563, 194 535, 191 499 C183 401, 190 319, 196 253 C205 180, 214 118, 247 76 Z"
-                  />
-                  <path
-                    class="borough brooklyn"
-                    d="M476 170 C553 126, 675 131, 757 183 C810 216, 827 277, 803 339 C776 408, 713 454, 639 476 C573 496, 518 480, 472 445 C431 413, 406 365, 399 314 C390 248, 421 202, 476 170 Z"
-                  />
-                  <path
-                    class="borough queens"
-                    d="M668 85 C722 74, 784 94, 827 132 C847 151, 849 174, 831 192 C812 212, 780 214, 744 202 C705 190, 665 170, 643 145 C628 129, 631 96, 668 85 Z"
-                  />
-                  <path class="subway line yellow" d="M204 514 L372 214 L653 159" />
-                  <path class="subway line green" d="M229 528 L309 398 L360 251 L505 252 L687 354" />
-                  <path class="subway line blue" d="M233 463 L315 303 L410 276 L570 314 L742 278" />
-                  <path class="subway line red" d="M246 568 L337 476 L441 396 L567 409 L710 451" />
-                </svg>
-                <div id="map-markers" class="map-markers" aria-live="polite"></div>
-              </div>
+          <div class="map-layout real-map">
+            <div class="map-frame real">
+              <div id="venue-map" class="leaflet-map" aria-label="Interactive NYC venue map"></div>
             </div>
-
             <aside class="map-sidebar">
-              <div id="map-selection" class="selection-card"></div>
+              <div id="map-detail" class="selection-card"></div>
               <div class="nearby-card">
-                <p class="panel-label">Closest lanes</p>
-                <h3>Best nearby from Broome</h3>
-                <div id="nearby-list" class="nearby-list"></div>
+                <p class="panel-label">Quick split</p>
+                <h3>How to use the map</h3>
+                <p>
+                  Use the map filter to cut the noise, click a pin to inspect a venue, then jump to
+                  its card or open directions from the hotel.
+                </p>
               </div>
             </aside>
           </div>
@@ -124,54 +105,85 @@
         <section class="section">
           <div class="section-heading">
             <div>
-              <p class="eyebrow">Full board</p>
-              <h2>Ranked venues with live booking windows</h2>
+              <p class="eyebrow">Restaurants</p>
+              <h2>38 places to actually eat</h2>
             </div>
-            <div class="filters" aria-label="Venue filters">
-              <button class="filter-button is-active" data-filter="all" type="button">All</button>
-              <button class="filter-button" data-filter="must" type="button">Must book</button>
-              <button class="filter-button" data-filter="strong" type="button">Strong secondary</button>
-              <button class="filter-button" data-filter="flex" type="button">Flexible backup</button>
-              <button class="filter-button" data-filter="restaurant" type="button">Restaurants</button>
-              <button class="filter-button" data-filter="bar" type="button">Bars</button>
-              <button class="filter-button" data-filter="manhattan" type="button">Lower Manhattan</button>
-              <button class="filter-button" data-filter="brooklyn" type="button">Brooklyn / Williamsburg</button>
+            <div class="inline-count" id="restaurant-count">Loading restaurants…</div>
+          </div>
+
+          <div class="filter-stack">
+            <div class="filter-row">
+              <button class="filter-button is-active" data-restaurant-filter="all" type="button">All restaurants</button>
+              <button class="filter-button" data-restaurant-filter="anchor" type="button">Anchor picks</button>
+              <button class="filter-button" data-restaurant-filter="worth-booking" type="button">Worth booking</button>
+              <button class="filter-button" data-restaurant-filter="local-play" type="button">Local plays</button>
+              <button class="filter-button" data-restaurant-filter="manhattan" type="button">Lower Manhattan</button>
+              <button class="filter-button" data-restaurant-filter="brooklyn" type="button">Brooklyn / Williamsburg</button>
+            </div>
+            <div class="filter-row">
+              <label class="select-wrap" for="restaurant-cuisine-filter">
+                <span class="select-label">Cuisine</span>
+                <select id="restaurant-cuisine-filter"></select>
+              </label>
+              <a class="pill-link" href="guinness.html">Open Guinness page</a>
             </div>
           </div>
 
-          <div id="venue-grid" class="venue-grid" aria-live="polite"></div>
+          <div id="restaurant-grid" class="venue-grid restaurant-grid" aria-live="polite"></div>
+        </section>
+
+        <section class="section">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Bars</p>
+              <h2>18 bars, including real dives</h2>
+            </div>
+            <div class="inline-count" id="bar-count">Loading bars…</div>
+          </div>
+
+          <div class="filter-row">
+            <button class="filter-button is-active" data-bar-filter="all" type="button">All bars</button>
+            <button class="filter-button" data-bar-filter="book" type="button">Reservation bars</button>
+            <button class="filter-button" data-bar-filter="local" type="button">Local bars</button>
+            <button class="filter-button" data-bar-filter="dive" type="button">Dive bars</button>
+            <button class="filter-button" data-bar-filter="cocktail" type="button">Cocktail</button>
+            <button class="filter-button" data-bar-filter="rooftop" type="button">Rooftop</button>
+            <button class="filter-button" data-bar-filter="listening" type="button">Listening</button>
+            <button class="filter-button" data-bar-filter="walk-in" type="button">Walk-in only</button>
+          </div>
+
+          <div id="bar-grid" class="venue-grid bar-grid" aria-live="polite"></div>
         </section>
 
         <section class="section note-section">
           <div class="section-heading">
             <div>
               <p class="eyebrow">Read once</p>
-              <h2>How to use the board</h2>
+              <h2>What changed</h2>
             </div>
           </div>
+
           <div class="note-grid">
             <article class="note-card">
-              <h3>Ranking logic</h3>
+              <h3>Spend for 2</h3>
               <p>
-                The rank is opinionated for <strong>your</strong> trip: downtown energy, date-night
-                quality, fashion-adjacent rooms, difficulty, and whether the bill still feels sane
-                once the round hits.
+                Restaurant cards now carry a rough pre-tax, pre-tip estimate for two people so you
+                can separate expensive hype from good-value hype.
               </p>
             </article>
             <article class="note-card">
-              <h3>Countdown logic</h3>
+              <h3>Exact vs portal</h3>
               <p>
-                Exact countdowns use official sites or direct booking intel. A few are marked
-                <strong>estimated</strong> when the release date is solid but the exact hour comes
-                from a current tracking service rather than the venue itself.
+                Countdown timers only show when the booking window is published or credibly tracked.
+                Portal-only venues stay on the page, but they do not pretend to have a clock if the
+                venue does not publish one.
               </p>
             </article>
             <article class="note-card">
-              <h3>Data timestamp</h3>
+              <h3>Guinness page</h3>
               <p>
-                Reservation policies and links were checked on <strong>March 13, 2026</strong>.
-                New York changes booking rules constantly, so use the source links when a place is
-                mission-critical.
+                The Guinness list lives on a separate page so the main restaurant-and-bar board
+                stays usable. It is built specifically for your lower-Manhattan / Brooklyn zone.
               </p>
             </article>
           </div>
@@ -179,6 +191,8 @@
       </main>
     </div>
 
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="venue-data.js"></script>
     <script src="script.js"></script>
   </body>
 </html>
