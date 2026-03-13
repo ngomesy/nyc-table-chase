@@ -89,6 +89,7 @@ body::before {
 .hero {
   display: grid;
   grid-template-columns: minmax(0, 1.45fr) minmax(320px, 0.8fr);
+  align-items: start;
   gap: 22px;
   margin: 18px 0 24px;
 }
@@ -133,6 +134,9 @@ body::before {
 }
 
 .hero-panel {
+  display: flex;
+  flex-direction: column;
+  height: min(84vh, 980px);
   padding: 28px;
   border: 1px solid rgba(255, 255, 255, 0.18);
   background:
@@ -260,11 +264,34 @@ h3 {
 
 .alarm-list {
   display: grid;
+  flex: 1;
   gap: 12px;
   margin-top: 18px;
-  max-height: 430px;
+  min-height: 0;
   overflow: auto;
-  padding-right: 4px;
+  padding-right: 8px;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 213, 77, 0.9) rgba(255, 255, 255, 0.08);
+}
+
+.alarm-list::-webkit-scrollbar {
+  width: 12px;
+}
+
+.alarm-list::-webkit-scrollbar-track {
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.alarm-list::-webkit-scrollbar-thumb {
+  border: 2px solid rgba(12, 13, 16, 0.96);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 213, 77, 1), rgba(235, 74, 59, 0.92));
+}
+
+.alarm-list::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(255, 226, 120, 1), rgba(255, 96, 64, 0.96));
 }
 
 .alarm-item {
@@ -751,6 +778,10 @@ a {
   .venue-grid,
   .note-grid {
     grid-template-columns: 1fr;
+  }
+
+  .hero-panel {
+    height: auto;
   }
 
   .hero-meta {
