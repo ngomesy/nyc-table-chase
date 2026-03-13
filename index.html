@@ -42,7 +42,8 @@
 
           <div class="hero-links">
             <a class="hero-link primary" href="guinness.html">Open Guinness Guide</a>
-            <a class="hero-link" href="#restaurant-grid">Jump to Restaurants</a>
+            <a class="hero-link" href="#restaurant-panel" data-open-view="restaurants">Jump to Restaurants</a>
+            <a class="hero-link" href="#bar-panel" data-open-view="bars">Jump to Bars</a>
           </div>
 
           <div class="hero-meta">
@@ -110,54 +111,68 @@
         <section class="section">
           <div class="section-heading">
             <div>
-              <p class="eyebrow">Restaurants</p>
-              <h2>38 places to actually eat</h2>
+              <p class="eyebrow">Venue board</p>
+              <h2>Restaurants and bars, without the endless scroll</h2>
             </div>
-            <div class="inline-count" id="restaurant-count">Loading restaurants…</div>
           </div>
 
-          <div class="filter-stack">
+          <div class="board-tabs">
+            <button class="filter-button is-active" data-board-view="restaurants" type="button">Restaurants</button>
+            <button class="filter-button" data-board-view="bars" type="button">Bars</button>
+          </div>
+
+          <div id="restaurant-panel" class="board-panel">
+            <div class="subsection-heading">
+              <div>
+                <p class="eyebrow">Restaurants</p>
+                <h3>38 places to actually eat</h3>
+              </div>
+              <div class="inline-count" id="restaurant-count">Loading restaurants…</div>
+            </div>
+
+            <div class="filter-stack">
+              <div class="filter-row">
+                <button class="filter-button is-active" data-restaurant-filter="all" type="button">All restaurants</button>
+                <button class="filter-button" data-restaurant-filter="anchor" type="button">Anchor picks</button>
+                <button class="filter-button" data-restaurant-filter="worth-booking" type="button">Worth booking</button>
+                <button class="filter-button" data-restaurant-filter="local-play" type="button">Local plays</button>
+                <button class="filter-button" data-restaurant-filter="manhattan" type="button">Lower Manhattan</button>
+                <button class="filter-button" data-restaurant-filter="brooklyn" type="button">Brooklyn / Williamsburg</button>
+              </div>
+              <div class="filter-row">
+                <label class="select-wrap" for="restaurant-cuisine-filter">
+                  <span class="select-label">Cuisine</span>
+                  <select id="restaurant-cuisine-filter"></select>
+                </label>
+                <a class="pill-link" href="guinness.html">Open Guinness page</a>
+              </div>
+            </div>
+
+            <div id="restaurant-grid" class="venue-grid restaurant-grid" aria-live="polite"></div>
+          </div>
+
+          <div id="bar-panel" class="board-panel" hidden>
+            <div class="subsection-heading">
+              <div>
+                <p class="eyebrow">Bars</p>
+                <h3>18 bars, including real dives</h3>
+              </div>
+              <div class="inline-count" id="bar-count">Loading bars…</div>
+            </div>
+
             <div class="filter-row">
-              <button class="filter-button is-active" data-restaurant-filter="all" type="button">All restaurants</button>
-              <button class="filter-button" data-restaurant-filter="anchor" type="button">Anchor picks</button>
-              <button class="filter-button" data-restaurant-filter="worth-booking" type="button">Worth booking</button>
-              <button class="filter-button" data-restaurant-filter="local-play" type="button">Local plays</button>
-              <button class="filter-button" data-restaurant-filter="manhattan" type="button">Lower Manhattan</button>
-              <button class="filter-button" data-restaurant-filter="brooklyn" type="button">Brooklyn / Williamsburg</button>
+              <button class="filter-button is-active" data-bar-filter="all" type="button">All bars</button>
+              <button class="filter-button" data-bar-filter="book" type="button">Reservation bars</button>
+              <button class="filter-button" data-bar-filter="local" type="button">Local bars</button>
+              <button class="filter-button" data-bar-filter="dive" type="button">Dive bars</button>
+              <button class="filter-button" data-bar-filter="cocktail" type="button">Cocktail</button>
+              <button class="filter-button" data-bar-filter="rooftop" type="button">Rooftop</button>
+              <button class="filter-button" data-bar-filter="listening" type="button">Listening</button>
+              <button class="filter-button" data-bar-filter="walk-in" type="button">Walk-in only</button>
             </div>
-            <div class="filter-row">
-              <label class="select-wrap" for="restaurant-cuisine-filter">
-                <span class="select-label">Cuisine</span>
-                <select id="restaurant-cuisine-filter"></select>
-              </label>
-              <a class="pill-link" href="guinness.html">Open Guinness page</a>
-            </div>
+
+            <div id="bar-grid" class="venue-grid bar-grid" aria-live="polite"></div>
           </div>
-
-          <div id="restaurant-grid" class="venue-grid restaurant-grid" aria-live="polite"></div>
-        </section>
-
-        <section class="section">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">Bars</p>
-              <h2>18 bars, including real dives</h2>
-            </div>
-            <div class="inline-count" id="bar-count">Loading bars…</div>
-          </div>
-
-          <div class="filter-row">
-            <button class="filter-button is-active" data-bar-filter="all" type="button">All bars</button>
-            <button class="filter-button" data-bar-filter="book" type="button">Reservation bars</button>
-            <button class="filter-button" data-bar-filter="local" type="button">Local bars</button>
-            <button class="filter-button" data-bar-filter="dive" type="button">Dive bars</button>
-            <button class="filter-button" data-bar-filter="cocktail" type="button">Cocktail</button>
-            <button class="filter-button" data-bar-filter="rooftop" type="button">Rooftop</button>
-            <button class="filter-button" data-bar-filter="listening" type="button">Listening</button>
-            <button class="filter-button" data-bar-filter="walk-in" type="button">Walk-in only</button>
-          </div>
-
-          <div id="bar-grid" class="venue-grid bar-grid" aria-live="polite"></div>
         </section>
 
         <section class="section note-section">

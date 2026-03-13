@@ -17,10 +17,14 @@ const mapCountEl = document.getElementById("map-count");
 const mapDetailEl = document.getElementById("map-detail");
 const arrivalCountdownEl = document.getElementById("arrival-countdown");
 const alarmListEl = document.getElementById("alarm-list");
+const restaurantPanelEl = document.getElementById("restaurant-panel");
+const barPanelEl = document.getElementById("bar-panel");
 
+const boardViewButtons = [...document.querySelectorAll("[data-board-view]")];
 const restaurantFilterButtons = [...document.querySelectorAll("[data-restaurant-filter]")];
 const barFilterButtons = [...document.querySelectorAll("[data-bar-filter]")];
 const mapFilterButtons = [...document.querySelectorAll("[data-map-filter]")];
+const quickViewLinks = [...document.querySelectorAll("[data-open-view]")];
 
 const restaurantState = {
   filter: "all",
@@ -35,6 +39,12 @@ const mapState = {
   filter: "all",
   selectedId: null,
 };
+
+const boardState = {
+  view: "restaurants",
+};
+
+const alarmWaveLimit = 16;
 
 const priorityMeta = {
   anchor: { label: "Anchor pick", className: "anchor" },
@@ -289,12 +299,38 @@ function hashId(id) {
   return [...id].reduce((sum, char) => sum + char.charCodeAt(0), 0);
 }
 
+function toRadians(value) {
+  return (value * Math.PI) / 180;
+}
+
+function distanceInMiles(fromLat, fromLng, toLat, toLng) {
+  const earthRadiusMiles = 3958.8;
+  const latDelta = toRadians(toLat - fromLat);
+  const lngDelta = toRadians(toLng - fromLng);
+  const a =
+    Math.sin(latDelta / 2) ** 2 +
+    Math.cos(toRadians(fromLat)) *
+      Math.cos(toRadians(toLat)) *
+      Math.sin(lngDelta / 2) ** 2;
+
+  return earthRadiusMiles * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 function getCoords(item) {
   const center = neighborhoodCenters[item.neighborhoodKey] || neighborhoodCenters.soho;
   const hash = hashId(item.id);
   const angle = ((hash * 37) % 360) * (Math.PI / 180);
   const radius = 0.0011 + ((hash % 6) * 0.00022);
   return [center.lat + Math.sin(angle) * radius, center.lng + Math.cos(angle) * radius];
+}
+
+function getDistanceFromHotel(item) {
+  const [lat, lng] = getCoords(item);
+  return distanceInMiles(hotelData.lat, hotelData.lng, lat, lng);
+}
+
+function formatDistance(distance) {
+  return `Approx. ${distance.toFixed(1)} mi from hotel`;
 }
 
 function createMapIcon(item, selected) {
@@ -308,7 +344,7 @@ function createMapIcon(item, selected) {
 
 function renderAlarmBoard() {
   const now = new Date();
-  const exactItems = [...restaurants, ...bars]
+  const releaseGroups = [...restaurants, ...bars]
     .map((item) => {
       const state = getBookingState(item, now);
       if (!state.nextRelease) {
@@ -317,15 +353,28 @@ function renderAlarmBoard() {
       return { item, nextRelease: state.nextRelease };
     })
     .filter(Boolean)
-    .sort((a, b) => a.nextRelease.releaseAt.getTime() - b.nextRelease.releaseAt.getTime())
-    .slice(0, 5);
+    .reduce((groups, entry) => {
+      const key = entry.nextRelease.releaseAt.getTime();
+      if (!groups.has(key)) {
+        groups.set(key, { nextRelease: entry.nextRelease, items: [] });
+      }
+      groups.get(key).items.push(entry.item);
+      return groups;
+    }, new Map());
 
-  alarmListEl.innerHTML = exactItems
+  const upcomingWaves = [...releaseGroups.values()]
+    .sort((a, b) => a.nextRelease.releaseAt.getTime() - b.nextRelease.releaseAt.getTime())
+    .slice(0, alarmWaveLimit);
+
+  alarmListEl.innerHTML = upcomingWaves
     .map(
-      ({ item, nextRelease }) => `
+      ({ items, nextRelease }) => `
         <div class="alarm-item">
-          <strong>${item.name}</strong>
-          <span>${nextRelease.tripLabel} • ${formatDateTime(nextRelease.releaseAt)}</span>
+          <strong>${nextRelease.tripLabel} • ${formatDateTime(nextRelease.releaseAt)}</strong>
+          <span>${items.length} venue${items.length === 1 ? "" : "s"} in this drop</span>
+          <div class="alarm-venues">${items
+            .map((item) => `<span class="alarm-venue">${item.name}</span>`)
+            .join("")}</div>
         </div>
       `,
     )
@@ -389,6 +438,7 @@ function renderRestaurants() {
               <div class="priority-pill ${priorityMeta[item.priority].className}">${priorityMeta[item.priority].label}</div>
               <h3>${item.name}</h3>
               <div class="venue-meta">${item.neighborhood} • ${item.cuisine} • ${item.spend}</div>
+              <div class="distance-line">${formatDistance(getDistanceFromHotel(item))}</div>
             </div>
             <div class="spend-badge">
               <span>Est. for 2</span>
@@ -447,6 +497,7 @@ function renderBars() {
               <div class="priority-pill ${priorityMeta[item.priority].className}">${priorityMeta[item.priority].label}</div>
               <h3>${item.name}</h3>
               <div class="venue-meta">${item.neighborhood} • ${typeLabel} • ${item.spend}</div>
+              <div class="distance-line">${formatDistance(getDistanceFromHotel(item))}</div>
             </div>
           </div>
 
@@ -504,6 +555,7 @@ function renderMapDetail(items) {
 
   const state = getBookingState(selected, new Date());
   const primaryLink = getPrimaryLink(selected);
+  const distance = formatDistance(getDistanceFromHotel(selected));
   const secondaryMeta =
     selected.type === "restaurant"
       ? `${selected.neighborhood} • ${selected.cuisine} • ${selected.spend} • Est. for 2 ${selected.spendFor2}`
@@ -515,6 +567,7 @@ function renderMapDetail(items) {
     }</div>
     <h3>${selected.name}</h3>
     <div class="detail-meta">${secondaryMeta}</div>
+    <div class="distance-line">${distance}</div>
     <p class="detail-copy">${selected.summary}</p>
     <p class="detail-copy"><strong>Move:</strong> ${selected.tip}</p>
     <div class="detail-status ${state.statusClass}">${state.label}</div>
@@ -626,6 +679,28 @@ function tickCountdowns() {
   }
 }
 
+function setBoardView(nextView) {
+  boardState.view = nextView;
+  const showRestaurants = nextView === "restaurants";
+  restaurantPanelEl.hidden = !showRestaurants;
+  barPanelEl.hidden = showRestaurants;
+  boardViewButtons.forEach((button) =>
+    button.classList.toggle("is-active", button.dataset.boardView === nextView),
+  );
+}
+
+boardViewButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    setBoardView(button.dataset.boardView);
+  });
+});
+
+quickViewLinks.forEach((link) => {
+  link.addEventListener("click", () => {
+    setBoardView(link.dataset.openView);
+  });
+});
+
 restaurantFilterButtons.forEach((button) => {
   button.addEventListener("click", () => {
     restaurantState.filter = button.dataset.restaurantFilter;
@@ -658,6 +733,7 @@ mapFilterButtons.forEach((button) => {
 });
 
 buildCuisineOptions();
+setBoardView(boardState.view);
 renderHeroStats();
 renderAlarmBoard();
 renderRestaurants();
