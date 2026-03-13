@@ -1,8 +1,9 @@
-const { guinnessSpots, mapsSearchUrl } = window.tripPlannerData;
+(() => {
+const { guinnessSpots: guinnessList, mapsSearchUrl } = window.tripPlannerData;
 
 const guinnessGridEl = document.getElementById("guinness-grid");
 
-guinnessGridEl.innerHTML = guinnessSpots
+guinnessGridEl.innerHTML = guinnessList
   .map(
     (spot) => `
       <article class="venue-card guinness-card">
@@ -32,3 +33,4 @@ guinnessGridEl.innerHTML = guinnessSpots
     `,
   )
   .join("");
+})();

@@ -1,10 +1,10 @@
+(() => {
 const {
-  hotel,
+  hotel: hotelData,
   tripDates,
   neighborhoodCenters,
   restaurants,
   bars,
-  searchUrl,
   mapsSearchUrl,
 } = window.tripPlannerData;
 
@@ -475,7 +475,7 @@ function renderBars() {
 function buildDirectionsUrl(destination) {
   const params = new URLSearchParams({
     api: "1",
-    origin: hotel.address,
+    origin: hotelData.address,
     destination,
     travelmode: "transit",
   });
@@ -537,14 +537,14 @@ function renderMap() {
     map = L.map("venue-map", {
       zoomControl: true,
       scrollWheelZoom: false,
-    }).setView([hotel.lat, hotel.lng], 13);
+    }).setView([hotelData.lat, hotelData.lng], 13);
 
     tileLayer = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution:
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     }).addTo(map);
 
-    hotelMarker = L.marker([hotel.lat, hotel.lng], {
+    hotelMarker = L.marker([hotelData.lat, hotelData.lng], {
       icon: L.divIcon({
         className: "map-marker-shell",
         html: '<span class="map-pin hotel"></span>',
@@ -564,7 +564,7 @@ function renderMap() {
     venueLayer = L.layerGroup().addTo(map);
   }
 
-  const bounds = [[hotel.lat, hotel.lng]];
+  const bounds = [[hotelData.lat, hotelData.lng]];
 
   items.forEach((item) => {
     const [lat, lng] = getCoords(item);
@@ -665,3 +665,4 @@ renderBars();
 renderMap();
 tickCountdowns();
 setInterval(tickCountdowns, 1000);
+})();
