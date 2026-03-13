@@ -3,20 +3,182 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Flappy-esque</title>
+    <title>NYC Table Chase | April 15-19, 2026</title>
+    <meta
+      name="description"
+      content="A ranked NYC restaurant and bar booking board for a SoHo stay from April 15-19, 2026."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Condensed:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <main class="app">
-      <h1>Flappy-esque</h1>
-      <div class="hud">
-        <div>Score: <span id="score">0</span></div>
-        <div>Best: <span id="best">0</span></div>
+    <div class="page-shell">
+      <div class="ticker">
+        <span>SOHO HQ</span>
+        <span>APRIL 15-19, 2026</span>
+        <span>LOWER MANHATTAN + WILLIAMSBURG + BROOKLYN</span>
+        <span>TABLES WORTH SETTING ALARMS FOR</span>
       </div>
-      <canvas id="game" width="420" height="640" aria-label="Flappy game canvas"></canvas>
-      <p id="status" class="status">Press Space / Click to start</p>
-      <p class="hint">Controls: Space, Arrow Up, Click or Tap</p>
-    </main>
+
+      <header class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">The Broome Hotel booking board</p>
+          <h1>New York table chase</h1>
+          <p class="lede">
+            Same layout, harder edge. This pass ranks the board, doubles the venue count, and adds
+            a hotel-centered map so you can move from Broome Street to the right reservation,
+            cocktail, or backup play without wasting trip time.
+          </p>
+
+          <div class="hero-meta">
+            <div class="meta-card">
+              <span class="meta-label">Stay</span>
+              <span class="meta-value">The Broome Hotel, 431 Broome St</span>
+            </div>
+            <div class="meta-card">
+              <span class="meta-label">Trip clock</span>
+              <span class="meta-value" id="arrival-countdown">Loading…</span>
+            </div>
+            <div class="meta-card">
+              <span class="meta-label">Board size</span>
+              <span class="meta-value">26 ranked restaurants + bars</span>
+            </div>
+          </div>
+        </div>
+
+        <aside class="hero-panel">
+          <p class="panel-label">First alarms</p>
+          <h2 id="first-drop-day">Loading</h2>
+          <p id="first-drop-summary" class="panel-copy">Checking the earliest reservation drops.</p>
+          <div id="first-drop-list" class="first-drop-list" aria-live="polite"></div>
+        </aside>
+      </header>
+
+      <main>
+        <section class="section">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Ranking board</p>
+              <h2>What to chase first</h2>
+            </div>
+          </div>
+          <div id="tier-strip" class="tier-strip" aria-live="polite"></div>
+        </section>
+
+        <section class="section map-section">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Map view</p>
+              <h2>From the hotel outward</h2>
+            </div>
+          </div>
+
+          <div class="map-layout">
+            <div class="map-frame">
+              <div class="map-legend">
+                <span><i class="legend-dot restaurant"></i>Restaurant</span>
+                <span><i class="legend-dot bar"></i>Bar</span>
+                <span><i class="legend-dot hotel"></i>Hotel</span>
+              </div>
+
+              <div class="map-stage">
+                <svg class="city-map" viewBox="0 0 860 620" aria-hidden="true">
+                  <rect x="0" y="0" width="860" height="620" rx="28" class="map-water" />
+                  <path
+                    class="borough manhattan"
+                    d="M247 76 C305 58, 344 90, 365 146 C382 188, 395 258, 389 315 C384 363, 363 439, 319 514 C292 560, 261 581, 232 571 C206 563, 194 535, 191 499 C183 401, 190 319, 196 253 C205 180, 214 118, 247 76 Z"
+                  />
+                  <path
+                    class="borough brooklyn"
+                    d="M476 170 C553 126, 675 131, 757 183 C810 216, 827 277, 803 339 C776 408, 713 454, 639 476 C573 496, 518 480, 472 445 C431 413, 406 365, 399 314 C390 248, 421 202, 476 170 Z"
+                  />
+                  <path
+                    class="borough queens"
+                    d="M668 85 C722 74, 784 94, 827 132 C847 151, 849 174, 831 192 C812 212, 780 214, 744 202 C705 190, 665 170, 643 145 C628 129, 631 96, 668 85 Z"
+                  />
+                  <path class="subway line yellow" d="M204 514 L372 214 L653 159" />
+                  <path class="subway line green" d="M229 528 L309 398 L360 251 L505 252 L687 354" />
+                  <path class="subway line blue" d="M233 463 L315 303 L410 276 L570 314 L742 278" />
+                  <path class="subway line red" d="M246 568 L337 476 L441 396 L567 409 L710 451" />
+                </svg>
+                <div id="map-markers" class="map-markers" aria-live="polite"></div>
+              </div>
+            </div>
+
+            <aside class="map-sidebar">
+              <div id="map-selection" class="selection-card"></div>
+              <div class="nearby-card">
+                <p class="panel-label">Closest lanes</p>
+                <h3>Best nearby from Broome</h3>
+                <div id="nearby-list" class="nearby-list"></div>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Full board</p>
+              <h2>Ranked venues with live booking windows</h2>
+            </div>
+            <div class="filters" aria-label="Venue filters">
+              <button class="filter-button is-active" data-filter="all" type="button">All</button>
+              <button class="filter-button" data-filter="must" type="button">Must book</button>
+              <button class="filter-button" data-filter="strong" type="button">Strong secondary</button>
+              <button class="filter-button" data-filter="flex" type="button">Flexible backup</button>
+              <button class="filter-button" data-filter="restaurant" type="button">Restaurants</button>
+              <button class="filter-button" data-filter="bar" type="button">Bars</button>
+              <button class="filter-button" data-filter="manhattan" type="button">Lower Manhattan</button>
+              <button class="filter-button" data-filter="brooklyn" type="button">Brooklyn / Williamsburg</button>
+            </div>
+          </div>
+
+          <div id="venue-grid" class="venue-grid" aria-live="polite"></div>
+        </section>
+
+        <section class="section note-section">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Read once</p>
+              <h2>How to use the board</h2>
+            </div>
+          </div>
+          <div class="note-grid">
+            <article class="note-card">
+              <h3>Ranking logic</h3>
+              <p>
+                The rank is opinionated for <strong>your</strong> trip: downtown energy, date-night
+                quality, fashion-adjacent rooms, difficulty, and whether the bill still feels sane
+                once the round hits.
+              </p>
+            </article>
+            <article class="note-card">
+              <h3>Countdown logic</h3>
+              <p>
+                Exact countdowns use official sites or direct booking intel. A few are marked
+                <strong>estimated</strong> when the release date is solid but the exact hour comes
+                from a current tracking service rather than the venue itself.
+              </p>
+            </article>
+            <article class="note-card">
+              <h3>Data timestamp</h3>
+              <p>
+                Reservation policies and links were checked on <strong>March 13, 2026</strong>.
+                New York changes booking rules constantly, so use the source links when a place is
+                mission-critical.
+              </p>
+            </article>
+          </div>
+        </section>
+      </main>
+    </div>
+
     <script src="script.js"></script>
   </body>
 </html>
