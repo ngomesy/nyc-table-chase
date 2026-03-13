@@ -137,7 +137,7 @@ function buildReleaseDate(visitIso, booking) {
     releaseDate = subtractCalendarMonths(visitIso, booking.monthsBefore);
   }
 
-  return new Date(`${releaseDate}T${booking.time}:00${booking.timeZoneOffset}`);
+  return new Date(`${releaseDate}T${booking.time || "00:00"}:00${booking.timeZoneOffset || "-04:00"}`);
 }
 
 function buildSchedule(item) {
@@ -192,16 +192,34 @@ function getBookingState(item, now) {
   const schedule = buildSchedule(item);
   const openCount = schedule.filter((entry) => now >= entry.releaseAt).length;
   const nextRelease = schedule.find((entry) => now < entry.releaseAt) || null;
+  const hasExactTime = item.booking.timeKnown !== false;
 
   if (!nextRelease) {
     return {
-      mode: "live",
-      label: item.booking.estimated ? "Live / estimated" : "Open now",
-      note: "All April 15-19 slots are now inside the published booking window.",
+      mode: hasExactTime ? "live" : "live-date-only",
+      label: hasExactTime ? (item.booking.estimated ? "Live / estimated" : "Open now") : "Date window open",
+      note: hasExactTime
+        ? "All April 15-19 slots are now inside the published booking window."
+        : "The booking date window is open, but the venue does not publish an exact release time.",
       schedule,
       nextRelease: null,
       openCount,
-      statusClass: item.booking.estimated ? "is-estimated" : "is-live",
+      statusClass: item.booking.estimated || !hasExactTime ? "is-estimated" : "is-live",
+    };
+  }
+
+  if (!hasExactTime) {
+    return {
+      mode: "date-countdown",
+      label: "Next booking date",
+      note: `${nextRelease.tripLabel} date unlocks ${formatDate(nextRelease.releaseAt, {
+        month: "short",
+        day: "numeric",
+      })}; exact time not published.`,
+      schedule,
+      nextRelease,
+      openCount,
+      statusClass: "is-estimated",
     };
   }
 
@@ -356,7 +374,7 @@ function renderAlarmBoard() {
   const releaseGroups = [...restaurants, ...bars]
     .map((item) => {
       const state = getBookingState(item, now);
-      if (!state.nextRelease) {
+      if (state.mode !== "countdown" || !state.nextRelease) {
         return null;
       }
       return { item, nextRelease: state.nextRelease };
@@ -391,7 +409,7 @@ function renderAlarmBoard() {
 }
 
 function createCountdownMarkup(item, state, now) {
-  if (state.mode === "countdown") {
+  if (state.mode === "countdown" || state.mode === "date-countdown") {
     return `
       <div class="booking-box">
         <div class="booking-label ${state.statusClass}">${state.label}</div>
@@ -431,7 +449,11 @@ function renderRestaurants() {
                   (entry) => `
                     <div class="schedule-chip ${now >= entry.releaseAt ? "is-live" : ""}">
                       ${entry.tripLabel}
-                      <span>${formatDateTime(entry.releaseAt)}${item.booking.estimated ? " est." : ""}</span>
+                      <span>${
+                        item.booking.timeKnown === false
+                          ? `${formatDate(entry.releaseAt, { month: "short", day: "numeric" })} time TBA`
+                          : `${formatDateTime(entry.releaseAt)}${item.booking.estimated ? " est." : ""}`
+                      }</span>
                     </div>
                   `,
                 )
