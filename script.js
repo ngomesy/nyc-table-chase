@@ -5,6 +5,7 @@ const {
   neighborhoodCenters,
   restaurants,
   bars,
+  cocktailBars,
   guinnessSpots,
   mapsSearchUrl,
 } = window.tripPlannerData;
@@ -82,8 +83,9 @@ const trackerState = {
   source: initialTrackedReservations.source,
 };
 
-const trackableVenues = [...restaurants, ...bars];
-const cocktailSpots = bars.filter((item) => ["cocktail", "rooftop", "listening"].includes(item.style));
+const allBoardVenues = [...new Map([...restaurants, ...bars, ...cocktailBars].map((item) => [item.name.toLowerCase(), item])).values()];
+const trackableVenues = allBoardVenues;
+const cocktailSpots = cocktailBars;
 
 const priorityMeta = {
   anchor: { label: "Anchor pick", className: "anchor" },
@@ -407,7 +409,11 @@ function matchesCocktailFilters(item) {
 }
 
 function buildMapItems() {
-  const allItems = [...restaurants.map((item) => ({ ...item, type: "restaurant" })), ...bars.map((item) => ({ ...item, type: "bar" }))];
+  const allItems = [
+    ...restaurants.map((item) => ({ ...item, type: "restaurant" })),
+    ...bars.map((item) => ({ ...item, type: "bar" })),
+    ...cocktailBars.map((item) => ({ ...item, type: "bar" })),
+  ].filter((item, index, items) => items.findIndex((entry) => entry.name === item.name) === index);
 
   if (mapState.filter === "all") {
     return allItems;
@@ -700,7 +706,7 @@ function createMapIcon(item, selected) {
 
 function renderAlarmBoard() {
   const now = new Date();
-  const releaseGroups = [...restaurants, ...bars]
+  const releaseGroups = allBoardVenues
     .map((item) => {
       const state = getBookingState(item, now);
       if (state.mode !== "countdown" || !state.nextRelease) {
