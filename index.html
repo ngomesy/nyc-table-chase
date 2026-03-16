@@ -27,23 +27,18 @@
         <span>THE BROOME HOTEL HQ</span>
         <span>APRIL 15-19, 2026</span>
         <span>LOWER MANHATTAN + WILLIAMSBURG + BROOKLYN</span>
-        <a href="#guinness-panel" data-open-view="guinness">GUINNESS TAB</a>
       </div>
 
       <header class="hero">
         <div class="hero-copy">
           <p class="eyebrow">NYC Table Chase</p>
           <h1>Reservations, dives, and pints worth the detour</h1>
-          <p class="lede">
-            This version splits the trip cleanly: a much bigger restaurant board, a bigger bar
-            board with actual dives mixed in, cuisine filters, rough spend-for-two numbers, and a
-            real map of the city instead of a sketch.
-          </p>
 
           <div class="hero-links">
             <a class="hero-link primary" href="#tracker-section">Track Booked Tables</a>
             <a class="hero-link" href="#restaurant-panel" data-open-view="restaurants">Jump to Restaurants</a>
             <a class="hero-link" href="#bar-panel" data-open-view="bars">Jump to Bars</a>
+            <a class="hero-link" href="#cocktail-panel" data-open-view="cocktails">Jump to Cocktails</a>
           </div>
 
           <div class="hero-meta">
@@ -57,7 +52,7 @@
             </div>
             <div class="meta-card">
               <span class="meta-label">Board size</span>
-              <span class="meta-value">38 restaurants • 18 bars • 10 Guinness spots</span>
+              <span class="meta-value">38 restaurants • 18 bars • 13 cocktails • 10 Guinness spots</span>
             </div>
           </div>
         </div>
@@ -65,10 +60,6 @@
         <aside class="hero-panel">
           <p class="panel-label">First booking alarms</p>
           <h2>What opens first</h2>
-          <p class="panel-copy">
-            Exact drops stay live here. Portal-only places stay on the board, but only the venues
-            with known release windows show countdowns.
-          </p>
           <div id="alarm-list" class="alarm-list" aria-live="polite"></div>
         </aside>
       </header>
@@ -84,10 +75,6 @@
           </div>
 
           <div class="tracker-topline">
-            <p class="tracker-intro">
-              Every booking you add here also updates a sync link, so you can open the same tracker
-              on your phone, laptop, or anywhere else without rebuilding it by hand.
-            </p>
             <div class="tracker-sync-actions">
               <button class="action-link secondary tracker-button" id="tracker-copy-link" type="button">Copy sync link</button>
               <button class="action-link ghost tracker-button" id="tracker-clear-all" type="button">Clear all bookings</button>
@@ -101,7 +88,6 @@
                   <p class="panel-label">Log one in</p>
                   <h3>Add a confirmed booking</h3>
                 </div>
-                <p class="tracker-form-note">The tracker watches for same-night overlaps inside a two-hour window.</p>
               </div>
 
               <div class="tracker-form-grid">
@@ -195,14 +181,6 @@
             </div>
             <aside class="map-sidebar">
               <div id="map-detail" class="selection-card"></div>
-              <div class="nearby-card">
-                <p class="panel-label">Quick split</p>
-                <h3>How to use the map</h3>
-                <p>
-                  Use the map filter to cut the noise, click a pin to inspect a venue, then jump to
-                  its card or open directions from the hotel.
-                </p>
-              </div>
             </aside>
           </div>
         </section>
@@ -211,13 +189,14 @@
           <div class="section-heading">
             <div>
               <p class="eyebrow">Venue board</p>
-              <h2>Restaurants and bars, without the endless scroll</h2>
+              <h2>Restaurants, bars, cocktails, and Guinness</h2>
             </div>
           </div>
 
           <div class="board-tabs">
             <button class="filter-button is-active" data-board-view="restaurants" type="button">Restaurants</button>
             <button class="filter-button" data-board-view="bars" type="button">Bars</button>
+            <button class="filter-button" data-board-view="cocktails" type="button">Cocktails</button>
             <button class="filter-button" data-board-view="guinness" type="button">Guinness</button>
           </div>
 
@@ -282,45 +261,27 @@
               <div class="inline-count" id="guinness-count">Loading Guinness spots…</div>
             </div>
 
-            <div class="filter-row">
-              <span class="pill-link static-pill">No reservations here. Just the best pours in your zone.</span>
-            </div>
-
             <div id="guinness-grid" class="venue-grid guinness-grid" aria-live="polite"></div>
           </div>
-        </section>
 
-        <section class="section note-section">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">Read once</p>
-              <h2>What changed</h2>
+          <div id="cocktail-panel" class="board-panel" hidden>
+            <div class="subsection-heading">
+              <div>
+                <p class="eyebrow">Cocktails</p>
+                <h3>Best cocktail plays on this board</h3>
+              </div>
+              <div class="inline-count" id="cocktail-count">Loading cocktail bars…</div>
             </div>
-          </div>
 
-          <div class="note-grid">
-            <article class="note-card">
-              <h3>Spend for 2</h3>
-              <p>
-                Restaurant cards now carry a rough pre-tax, pre-tip estimate for two people so you
-                can separate expensive hype from good-value hype.
-              </p>
-            </article>
-            <article class="note-card">
-              <h3>Exact vs portal</h3>
-              <p>
-                Countdown timers only show when the booking window is published or credibly tracked.
-                Portal-only venues stay on the page, but they do not pretend to have a clock if the
-                venue does not publish one.
-              </p>
-            </article>
-            <article class="note-card">
-              <h3>Guinness tab</h3>
-              <p>
-                Guinness now lives inside the same board as the restaurants and bars, so you can
-                pivot to pint mode without leaving the main planner.
-              </p>
-            </article>
+            <div class="filter-row">
+              <button class="filter-button is-active" data-cocktail-filter="all" type="button">All cocktails</button>
+              <button class="filter-button" data-cocktail-filter="book" type="button">Reservation plays</button>
+              <button class="filter-button" data-cocktail-filter="walk-in" type="button">Walk-in plays</button>
+              <button class="filter-button" data-cocktail-filter="manhattan" type="button">Lower Manhattan</button>
+              <button class="filter-button" data-cocktail-filter="brooklyn" type="button">Brooklyn / Williamsburg</button>
+            </div>
+
+            <div id="cocktail-grid" class="venue-grid bar-grid" aria-live="polite"></div>
           </div>
         </section>
       </main>

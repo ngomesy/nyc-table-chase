@@ -11,10 +11,12 @@ const {
 
 const restaurantGridEl = document.getElementById("restaurant-grid");
 const barGridEl = document.getElementById("bar-grid");
+const cocktailGridEl = document.getElementById("cocktail-grid");
 const guinnessGridEl = document.getElementById("guinness-grid");
 const restaurantCuisineEl = document.getElementById("restaurant-cuisine-filter");
 const restaurantCountEl = document.getElementById("restaurant-count");
 const barCountEl = document.getElementById("bar-count");
+const cocktailCountEl = document.getElementById("cocktail-count");
 const guinnessCountEl = document.getElementById("guinness-count");
 const mapCountEl = document.getElementById("map-count");
 const mapDetailEl = document.getElementById("map-detail");
@@ -37,11 +39,13 @@ const trackerConflictsEl = document.getElementById("tracker-conflicts");
 const trackerDayBoardEl = document.getElementById("tracker-day-board");
 const restaurantPanelEl = document.getElementById("restaurant-panel");
 const barPanelEl = document.getElementById("bar-panel");
+const cocktailPanelEl = document.getElementById("cocktail-panel");
 const guinnessPanelEl = document.getElementById("guinness-panel");
 
 const boardViewButtons = [...document.querySelectorAll("[data-board-view]")];
 const restaurantFilterButtons = [...document.querySelectorAll("[data-restaurant-filter]")];
 const barFilterButtons = [...document.querySelectorAll("[data-bar-filter]")];
+const cocktailFilterButtons = [...document.querySelectorAll("[data-cocktail-filter]")];
 const mapFilterButtons = [...document.querySelectorAll("[data-map-filter]")];
 const quickViewLinks = [...document.querySelectorAll("[data-open-view]")];
 
@@ -51,6 +55,10 @@ const restaurantState = {
 };
 
 const barState = {
+  filter: "all",
+};
+
+const cocktailState = {
   filter: "all",
 };
 
@@ -75,6 +83,7 @@ const trackerState = {
 };
 
 const trackableVenues = [...restaurants, ...bars];
+const cocktailSpots = bars.filter((item) => ["cocktail", "rooftop", "listening"].includes(item.style));
 
 const priorityMeta = {
   anchor: { label: "Anchor pick", className: "anchor" },
@@ -382,6 +391,19 @@ function matchesBarFilters(item) {
     return item.booking.kind === "walk-in";
   }
   return item.style === barState.filter || item.priority === barState.filter;
+}
+
+function matchesCocktailFilters(item) {
+  if (cocktailState.filter === "all") {
+    return true;
+  }
+  if (cocktailState.filter === "brooklyn" || cocktailState.filter === "manhattan") {
+    return item.region === cocktailState.filter;
+  }
+  if (cocktailState.filter === "walk-in") {
+    return item.booking.kind === "walk-in";
+  }
+  return item.priority === cocktailState.filter;
 }
 
 function buildMapItems() {
@@ -736,6 +758,57 @@ function createCountdownMarkup(item, state, now) {
   `;
 }
 
+function getBarTypeLabel(item) {
+  if (item.style === "dive") {
+    return "Dive";
+  }
+  if (item.style === "cocktail") {
+    return "Cocktail";
+  }
+  if (item.style === "rooftop") {
+    return "Rooftop";
+  }
+  if (item.style === "listening") {
+    return "Listening";
+  }
+  return item.style;
+}
+
+function renderBarCardMarkup(item, now) {
+  const state = getBookingState(item, now);
+  const primaryLink = getPrimaryLink(item);
+
+  return `
+    <article class="venue-card bar-card" id="venue-${item.id}">
+      <div class="venue-header">
+        <div>
+          <div class="priority-pill ${priorityMeta[item.priority].className}">${priorityMeta[item.priority].label}</div>
+          <h3>${item.name}</h3>
+          <div class="venue-meta">${item.neighborhood} • ${getBarTypeLabel(item)} • ${item.spend}</div>
+          <div class="distance-line">${formatDistance(getDistanceFromHotel(item))}</div>
+        </div>
+      </div>
+
+      <p class="venue-summary">${item.summary}</p>
+      <p class="venue-tip"><strong>Play:</strong> ${item.tip}</p>
+
+      ${createCountdownMarkup(item, state, now)}
+
+      <div class="venue-actions">
+        <a class="action-link primary" href="${primaryLink.href}" target="_blank" rel="noreferrer">${primaryLink.label}</a>
+        <a class="action-link secondary" href="${buildDirectionsUrl(item.address)}" target="_blank" rel="noreferrer">Directions from hotel</a>
+        ${
+          item.sourceUrl
+            ? `<a class="action-link ghost" href="${item.sourceUrl}" target="_blank" rel="noreferrer">Timing source</a>`
+            : item.websiteUrl
+              ? `<a class="action-link ghost" href="${item.websiteUrl}" target="_blank" rel="noreferrer">Venue page</a>`
+              : ""
+        }
+      </div>
+    </article>
+  `;
+}
+
 function renderRestaurants() {
   const visibleRestaurants = restaurants.filter(matchesRestaurantFilters);
   const now = new Date();
@@ -813,51 +886,16 @@ function renderBars() {
 
   barCountEl.textContent = `${visibleBars.length} bars`;
 
-  barGridEl.innerHTML = visibleBars
-    .map((item) => {
-      const state = getBookingState(item, now);
-      const primaryLink = getPrimaryLink(item);
-      const typeLabel =
-        item.style === "dive"
-          ? "Dive"
-          : item.style === "cocktail"
-            ? "Cocktail"
-            : item.style === "rooftop"
-              ? "Rooftop"
-              : item.style === "listening"
-                ? "Listening"
-                : item.style;
+  barGridEl.innerHTML = visibleBars.map((item) => renderBarCardMarkup(item, now)).join("");
+}
 
-      return `
-        <article class="venue-card bar-card" id="venue-${item.id}">
-          <div class="venue-header">
-            <div>
-              <div class="priority-pill ${priorityMeta[item.priority].className}">${priorityMeta[item.priority].label}</div>
-              <h3>${item.name}</h3>
-              <div class="venue-meta">${item.neighborhood} • ${typeLabel} • ${item.spend}</div>
-              <div class="distance-line">${formatDistance(getDistanceFromHotel(item))}</div>
-            </div>
-          </div>
+function renderCocktails() {
+  const visibleCocktails = cocktailSpots.filter(matchesCocktailFilters);
+  const now = new Date();
 
-          <p class="venue-summary">${item.summary}</p>
-          <p class="venue-tip"><strong>Play:</strong> ${item.tip}</p>
-
-          ${createCountdownMarkup(item, state, now)}
-
-          <div class="venue-actions">
-            <a class="action-link primary" href="${primaryLink.href}" target="_blank" rel="noreferrer">${primaryLink.label}</a>
-            <a class="action-link secondary" href="${buildDirectionsUrl(item.address)}" target="_blank" rel="noreferrer">Directions from hotel</a>
-            ${
-              item.sourceUrl
-                ? `<a class="action-link ghost" href="${item.sourceUrl}" target="_blank" rel="noreferrer">Timing source</a>`
-                : item.websiteUrl
-                  ? `<a class="action-link ghost" href="${item.websiteUrl}" target="_blank" rel="noreferrer">Venue page</a>`
-                  : ""
-            }
-          </div>
-        </article>
-      `;
-    })
+  cocktailCountEl.textContent = `${visibleCocktails.length} cocktail bars`;
+  cocktailGridEl.innerHTML = visibleCocktails
+    .map((item) => renderBarCardMarkup(item, now))
     .join("");
 }
 
@@ -1052,6 +1090,7 @@ function tickCountdowns() {
     renderAlarmBoard();
     renderRestaurants();
     renderBars();
+    renderCocktails();
     renderMap();
   }
 }
@@ -1060,6 +1099,7 @@ function setBoardView(nextView) {
   boardState.view = nextView;
   restaurantPanelEl.hidden = nextView !== "restaurants";
   barPanelEl.hidden = nextView !== "bars";
+  cocktailPanelEl.hidden = nextView !== "cocktails";
   guinnessPanelEl.hidden = nextView !== "guinness";
   boardViewButtons.forEach((button) =>
     button.classList.toggle("is-active", button.dataset.boardView === nextView),
@@ -1231,6 +1271,14 @@ barFilterButtons.forEach((button) => {
   });
 });
 
+cocktailFilterButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    cocktailState.filter = button.dataset.cocktailFilter;
+    cocktailFilterButtons.forEach((item) => item.classList.toggle("is-active", item === button));
+    renderCocktails();
+  });
+});
+
 mapFilterButtons.forEach((button) => {
   button.addEventListener("click", () => {
     mapState.filter = button.dataset.mapFilter;
@@ -1250,6 +1298,7 @@ renderHeroStats();
 renderAlarmBoard();
 renderRestaurants();
 renderBars();
+renderCocktails();
 renderGuinness();
 renderMap();
 tickCountdowns();

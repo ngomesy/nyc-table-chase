@@ -474,7 +474,7 @@ h3 {
 
 .tracker-topline {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 18px;
   align-items: center;
   margin-bottom: 18px;
@@ -535,7 +535,7 @@ h3 {
 
 .tracker-form-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.8fr) repeat(3, minmax(0, 0.72fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
 }
 
@@ -550,10 +550,12 @@ h3 {
 
 .tracker-field-venue,
 .tracker-field-notes {
-  grid-column: span 4;
+  grid-column: span 3;
 }
 
 .tracker-field input {
+  width: 100%;
+  min-width: 0;
   min-height: 54px;
   padding: 0 14px;
   border: 2px solid var(--ink);
