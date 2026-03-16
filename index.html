@@ -41,7 +41,7 @@
           </p>
 
           <div class="hero-links">
-            <a class="hero-link primary" href="#guinness-panel" data-open-view="guinness">Open Guinness Tab</a>
+            <a class="hero-link primary" href="#tracker-section">Track Booked Tables</a>
             <a class="hero-link" href="#restaurant-panel" data-open-view="restaurants">Jump to Restaurants</a>
             <a class="hero-link" href="#bar-panel" data-open-view="bars">Jump to Bars</a>
           </div>
@@ -74,6 +74,69 @@
       </header>
 
       <main>
+        <section class="section tracker-section" id="tracker-section">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Already booked</p>
+              <h2>Keep your reservations straight</h2>
+            </div>
+            <div class="inline-count" id="tracker-count">0 bookings logged</div>
+          </div>
+
+          <div class="tracker-layout">
+            <form id="reservation-tracker-form" class="tracker-form" autocomplete="off">
+              <label class="tracker-field tracker-field-wide" for="tracker-venue">
+                <span class="select-label">Venue</span>
+                <input id="tracker-venue" name="venue" list="tracker-venue-options" placeholder="Lilia, Semma, Double Chicken Please..." required />
+              </label>
+
+              <label class="tracker-field" for="tracker-date">
+                <span class="select-label">Date</span>
+                <input id="tracker-date" name="date" type="date" min="2026-04-15" max="2026-04-19" required />
+              </label>
+
+              <label class="tracker-field" for="tracker-time">
+                <span class="select-label">Time</span>
+                <input id="tracker-time" name="time" type="time" step="900" required />
+              </label>
+
+              <label class="tracker-field" for="tracker-party-size">
+                <span class="select-label">Party Size</span>
+                <input id="tracker-party-size" name="partySize" type="number" min="1" max="12" value="2" required />
+              </label>
+
+              <label class="tracker-field tracker-field-wide" for="tracker-notes">
+                <span class="select-label">Notes</span>
+                <input id="tracker-notes" name="notes" type="text" placeholder="Birthday dinner, drinks before, patio request..." />
+              </label>
+
+              <div class="tracker-actions">
+                <button class="action-link primary tracker-button" type="submit">Add booked reservation</button>
+              </div>
+
+              <datalist id="tracker-venue-options"></datalist>
+            </form>
+
+            <aside class="tracker-sidebar">
+              <div class="selection-card tracker-summary-card">
+                <p class="panel-label">Tracker status</p>
+                <h3 id="tracker-summary-title">Schedule looks clean</h3>
+                <p id="tracker-summary-copy" class="detail-copy">
+                  Add confirmed reservations here. The board flags exact duplicates and same-day
+                  bookings that sit too close together.
+                </p>
+              </div>
+
+              <div class="selection-card tracker-conflicts-card">
+                <p class="panel-label">Conflict watch</p>
+                <div id="tracker-conflicts" class="tracker-conflicts"></div>
+              </div>
+            </aside>
+          </div>
+
+          <div id="tracker-day-board" class="tracker-day-board" aria-live="polite"></div>
+        </section>
+
         <section class="section map-section">
           <div class="section-heading">
             <div>

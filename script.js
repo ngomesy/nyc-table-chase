@@ -20,6 +20,18 @@ const mapCountEl = document.getElementById("map-count");
 const mapDetailEl = document.getElementById("map-detail");
 const arrivalCountdownEl = document.getElementById("arrival-countdown");
 const alarmListEl = document.getElementById("alarm-list");
+const trackerFormEl = document.getElementById("reservation-tracker-form");
+const trackerVenueEl = document.getElementById("tracker-venue");
+const trackerDateEl = document.getElementById("tracker-date");
+const trackerTimeEl = document.getElementById("tracker-time");
+const trackerPartySizeEl = document.getElementById("tracker-party-size");
+const trackerNotesEl = document.getElementById("tracker-notes");
+const trackerVenueOptionsEl = document.getElementById("tracker-venue-options");
+const trackerCountEl = document.getElementById("tracker-count");
+const trackerSummaryTitleEl = document.getElementById("tracker-summary-title");
+const trackerSummaryCopyEl = document.getElementById("tracker-summary-copy");
+const trackerConflictsEl = document.getElementById("tracker-conflicts");
+const trackerDayBoardEl = document.getElementById("tracker-day-board");
 const restaurantPanelEl = document.getElementById("restaurant-panel");
 const barPanelEl = document.getElementById("bar-panel");
 const guinnessPanelEl = document.getElementById("guinness-panel");
@@ -49,6 +61,14 @@ const boardState = {
 };
 
 const alarmWaveLimit = 16;
+const trackerStorageKey = "nyc-table-chase-bookings-v1";
+const trackerConflictWindowMs = 2 * 60 * 60 * 1000;
+
+const trackerState = {
+  entries: loadTrackedReservations(),
+};
+
+const trackableVenues = [...restaurants, ...bars];
 
 const priorityMeta = {
   anchor: { label: "Anchor pick", className: "anchor" },
@@ -64,6 +84,21 @@ let tileLayer;
 let venueLayer;
 let hotelMarker;
 let lastMapFilter = null;
+
+function loadTrackedReservations() {
+  try {
+    const stored = window.localStorage.getItem(trackerStorageKey);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveTrackedReservations() {
+  try {
+    window.localStorage.setItem(trackerStorageKey, JSON.stringify(trackerState.entries));
+  } catch {}
+}
 
 function formatDate(date, options) {
   return new Intl.DateTimeFormat("en-US", {
@@ -86,6 +121,10 @@ function formatTime(date) {
     hour: "numeric",
     minute: "2-digit",
   });
+}
+
+function formatTrackerTime(entry) {
+  return formatTime(new Date(`${entry.date}T${entry.time}:00-04:00`));
 }
 
 function daysUntil(from, to) {
@@ -358,6 +397,161 @@ function formatDistance(distance) {
 function getNeighborhoodDistance(neighborhoodKey) {
   const center = neighborhoodCenters[neighborhoodKey] || neighborhoodCenters.soho;
   return distanceInMiles(hotelData.lat, hotelData.lng, center.lat, center.lng);
+}
+
+function setTrackerDefaults() {
+  trackerDateEl.value = trackerDateEl.value || tripDates[0].iso;
+  trackerTimeEl.value = trackerTimeEl.value || "19:00";
+  trackerPartySizeEl.value = trackerPartySizeEl.value || "2";
+}
+
+function buildTrackerVenueOptions() {
+  trackerVenueOptionsEl.innerHTML = trackableVenues
+    .slice()
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map((item) => `<option value="${item.name}"></option>`)
+    .join("");
+}
+
+function findTrackableVenueByName(name) {
+  const target = name.trim().toLowerCase();
+  return trackableVenues.find((item) => item.name.toLowerCase() === target) || null;
+}
+
+function sortTrackedReservations(entries) {
+  return entries
+    .slice()
+    .sort((a, b) => new Date(`${a.date}T${a.time}:00-04:00`) - new Date(`${b.date}T${b.time}:00-04:00`));
+}
+
+function getTrackedReservationConflicts(entries) {
+  const conflictsById = new Map(entries.map((entry) => [entry.id, []]));
+  const pairs = [];
+
+  for (let index = 0; index < entries.length; index += 1) {
+    for (let compareIndex = index + 1; compareIndex < entries.length; compareIndex += 1) {
+      const first = entries[index];
+      const second = entries[compareIndex];
+
+      if (first.date !== second.date) {
+        continue;
+      }
+
+      const firstDate = new Date(`${first.date}T${first.time}:00-04:00`);
+      const secondDate = new Date(`${second.date}T${second.time}:00-04:00`);
+      const difference = Math.abs(firstDate.getTime() - secondDate.getTime());
+
+      if (difference >= trackerConflictWindowMs) {
+        continue;
+      }
+
+      const kind = difference === 0 ? "exact" : "tight";
+      const payload = { otherId: second.id, kind };
+      const reversePayload = { otherId: first.id, kind };
+
+      conflictsById.get(first.id).push(payload);
+      conflictsById.get(second.id).push(reversePayload);
+      pairs.push({ first, second, kind });
+    }
+  }
+
+  return { conflictsById, pairs };
+}
+
+function renderTracker() {
+  const entries = sortTrackedReservations(trackerState.entries);
+  const { conflictsById, pairs } = getTrackedReservationConflicts(entries);
+  const conflictEntryCount = entries.filter((entry) => conflictsById.get(entry.id).length > 0).length;
+
+  trackerCountEl.textContent = `${entries.length} booking${entries.length === 1 ? "" : "s"} logged`;
+
+  if (!entries.length) {
+    trackerSummaryTitleEl.textContent = "Nothing booked yet";
+    trackerSummaryCopyEl.textContent =
+      "Add confirmed reservations here. The board will flag exact duplicates and same-day bookings that sit too close together.";
+  } else if (!pairs.length) {
+    trackerSummaryTitleEl.textContent = "Schedule looks clean";
+    trackerSummaryCopyEl.textContent =
+      "No same-day conflicts inside the two-hour watch window. Keep logging bookings here as they come in.";
+  } else {
+    trackerSummaryTitleEl.textContent = `${conflictEntryCount} booking${conflictEntryCount === 1 ? "" : "s"} need a look`;
+    trackerSummaryCopyEl.textContent =
+      "Conflict watch is flagging bookings on the same day that overlap exactly or land within two hours of each other.";
+  }
+
+  trackerConflictsEl.innerHTML = pairs.length
+    ? pairs
+        .map(
+          ({ first, second, kind }) => `
+            <div class="tracker-conflict">
+              <strong>${kind === "exact" ? "Exact double-booking risk" : "Tight same-night overlap"}</strong>
+              <span>${first.venue} at ${formatTrackerTime(first)} and ${second.venue} at ${formatTrackerTime(second)} on ${formatDate(
+                new Date(`${first.date}T12:00:00-04:00`),
+                { weekday: "short", month: "short", day: "numeric" },
+              )}</span>
+            </div>
+          `,
+        )
+        .join("")
+    : `<div class="tracker-empty">No conflicts flagged.</div>`;
+
+  trackerDayBoardEl.innerHTML = tripDates
+    .map((tripDate) => {
+      const dayEntries = entries.filter((entry) => entry.date === tripDate.iso);
+      const listMarkup = dayEntries.length
+        ? `
+          <div class="tracker-day-list">
+            ${dayEntries
+              .map((entry) => {
+                const venueMatch = entry.venueId
+                  ? trackableVenues.find((item) => item.id === entry.venueId)
+                  : findTrackableVenueByName(entry.venue);
+                const hasConflict = conflictsById.get(entry.id).length > 0;
+
+                return `
+                  <article class="tracker-booking ${hasConflict ? "is-conflict" : ""}">
+                    <div class="tracker-booking-head">
+                      <div>
+                        <strong>${entry.venue}</strong>
+                        <div class="tracker-booking-meta">${formatTrackerTime(entry)} • Party of ${entry.partySize}</div>
+                      </div>
+                      <span class="tracker-badge ${hasConflict ? "is-conflict" : ""}">
+                        ${hasConflict ? "Conflict watch" : "Booked"}
+                      </span>
+                    </div>
+                    ${
+                      entry.notes
+                        ? `<div class="tracker-booking-note">${entry.notes}</div>`
+                        : ""
+                    }
+                    ${
+                      venueMatch
+                        ? `<div class="tracker-booking-note">Matches board card: <a href="#venue-${venueMatch.id}">${venueMatch.name}</a></div>`
+                        : ""
+                    }
+                    <button class="tracker-remove" type="button" data-remove-booking="${entry.id}">Remove</button>
+                  </article>
+                `;
+              })
+              .join("")}
+          </div>
+        `
+        : `<div class="tracker-empty">No bookings logged for this day.</div>`;
+
+      return `
+        <section class="tracker-day">
+          <div class="tracker-day-header">
+            <div>
+              <p class="eyebrow">Trip day</p>
+              <div class="tracker-day-label">${tripDate.label}</div>
+            </div>
+            <div class="tracker-day-count">${dayEntries.length} booking${dayEntries.length === 1 ? "" : "s"}</div>
+          </div>
+          ${listMarkup}
+        </section>
+      `;
+    })
+    .join("");
 }
 
 function createMapIcon(item, selected) {
@@ -771,6 +965,40 @@ quickViewLinks.forEach((link) => {
   });
 });
 
+trackerFormEl.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  const venueName = trackerVenueEl.value.trim();
+  const matchedVenue = findTrackableVenueByName(venueName);
+
+  trackerState.entries.push({
+    id: window.crypto?.randomUUID ? window.crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
+    venue: venueName,
+    venueId: matchedVenue?.id || null,
+    date: trackerDateEl.value,
+    time: trackerTimeEl.value,
+    partySize: Number(trackerPartySizeEl.value),
+    notes: trackerNotesEl.value.trim(),
+  });
+
+  saveTrackedReservations();
+  renderTracker();
+  trackerFormEl.reset();
+  setTrackerDefaults();
+  trackerVenueEl.focus();
+});
+
+trackerDayBoardEl.addEventListener("click", (event) => {
+  const trigger = event.target.closest("[data-remove-booking]");
+  if (!trigger) {
+    return;
+  }
+
+  trackerState.entries = trackerState.entries.filter((entry) => entry.id !== trigger.dataset.removeBooking);
+  saveTrackedReservations();
+  renderTracker();
+});
+
 restaurantFilterButtons.forEach((button) => {
   button.addEventListener("click", () => {
     restaurantState.filter = button.dataset.restaurantFilter;
@@ -803,6 +1031,9 @@ mapFilterButtons.forEach((button) => {
 });
 
 buildCuisineOptions();
+buildTrackerVenueOptions();
+setTrackerDefaults();
+renderTracker();
 setBoardView(boardState.view);
 renderHeroStats();
 renderAlarmBoard();
