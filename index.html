@@ -83,35 +83,60 @@
             <div class="inline-count" id="tracker-count">0 bookings logged</div>
           </div>
 
+          <div class="tracker-topline">
+            <p class="tracker-intro">
+              Every booking you add here also updates a sync link, so you can open the same tracker
+              on your phone, laptop, or anywhere else without rebuilding it by hand.
+            </p>
+            <div class="tracker-sync-actions">
+              <button class="action-link secondary tracker-button" id="tracker-copy-link" type="button">Copy sync link</button>
+              <button class="action-link ghost tracker-button" id="tracker-clear-all" type="button">Clear all bookings</button>
+            </div>
+          </div>
+
           <div class="tracker-layout">
             <form id="reservation-tracker-form" class="tracker-form" autocomplete="off">
-              <label class="tracker-field tracker-field-wide" for="tracker-venue">
-                <span class="select-label">Venue</span>
-                <input id="tracker-venue" name="venue" list="tracker-venue-options" placeholder="Lilia, Semma, Double Chicken Please..." required />
-              </label>
+              <div class="tracker-form-head">
+                <div>
+                  <p class="panel-label">Log one in</p>
+                  <h3>Add a confirmed booking</h3>
+                </div>
+                <p class="tracker-form-note">The tracker watches for same-night overlaps inside a two-hour window.</p>
+              </div>
 
-              <label class="tracker-field" for="tracker-date">
-                <span class="select-label">Date</span>
-                <input id="tracker-date" name="date" type="date" min="2026-04-15" max="2026-04-19" required />
-              </label>
+              <div class="tracker-form-grid">
+                <label class="tracker-field tracker-field-venue" for="tracker-venue">
+                  <span class="select-label">Venue</span>
+                  <input id="tracker-venue" name="venue" list="tracker-venue-options" placeholder="Lilia, Semma, Double Chicken Please..." required />
+                </label>
 
-              <label class="tracker-field" for="tracker-time">
-                <span class="select-label">Time</span>
-                <input id="tracker-time" name="time" type="time" step="900" required />
-              </label>
+                <label class="tracker-field" for="tracker-date">
+                  <span class="select-label">Date</span>
+                  <input id="tracker-date" name="date" type="date" min="2026-04-15" max="2026-04-19" required />
+                </label>
 
-              <label class="tracker-field" for="tracker-party-size">
-                <span class="select-label">Party Size</span>
-                <input id="tracker-party-size" name="partySize" type="number" min="1" max="12" value="2" required />
-              </label>
+                <label class="tracker-field" for="tracker-time">
+                  <span class="select-label">Time</span>
+                  <input id="tracker-time" name="time" type="time" step="900" required />
+                </label>
 
-              <label class="tracker-field tracker-field-wide" for="tracker-notes">
-                <span class="select-label">Notes</span>
-                <input id="tracker-notes" name="notes" type="text" placeholder="Birthday dinner, drinks before, patio request..." />
-              </label>
+                <label class="tracker-field" for="tracker-party-size">
+                  <span class="select-label">Party Size</span>
+                  <input id="tracker-party-size" name="partySize" type="number" min="1" max="12" value="2" required />
+                </label>
+
+                <label class="tracker-field tracker-field-notes" for="tracker-notes">
+                  <span class="select-label">Notes</span>
+                  <input id="tracker-notes" name="notes" type="text" placeholder="Birthday dinner, drinks before, patio request..." />
+                </label>
+              </div>
 
               <div class="tracker-actions">
                 <button class="action-link primary tracker-button" type="submit">Add booked reservation</button>
+                <div class="tracker-sync-chip">
+                  <span class="select-label">Sync status</span>
+                  <strong id="tracker-sync-status">Link ready</strong>
+                </div>
               </div>
 
               <datalist id="tracker-venue-options"></datalist>

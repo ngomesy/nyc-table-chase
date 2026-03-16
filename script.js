@@ -28,6 +28,9 @@ const trackerPartySizeEl = document.getElementById("tracker-party-size");
 const trackerNotesEl = document.getElementById("tracker-notes");
 const trackerVenueOptionsEl = document.getElementById("tracker-venue-options");
 const trackerCountEl = document.getElementById("tracker-count");
+const trackerCopyLinkEl = document.getElementById("tracker-copy-link");
+const trackerClearAllEl = document.getElementById("tracker-clear-all");
+const trackerSyncStatusEl = document.getElementById("tracker-sync-status");
 const trackerSummaryTitleEl = document.getElementById("tracker-summary-title");
 const trackerSummaryCopyEl = document.getElementById("tracker-summary-copy");
 const trackerConflictsEl = document.getElementById("tracker-conflicts");
@@ -62,10 +65,13 @@ const boardState = {
 
 const alarmWaveLimit = 16;
 const trackerStorageKey = "nyc-table-chase-bookings-v1";
+const trackerUrlParam = "bookings";
 const trackerConflictWindowMs = 2 * 60 * 60 * 1000;
+const initialTrackedReservations = loadTrackedReservations();
 
 const trackerState = {
-  entries: loadTrackedReservations(),
+  entries: initialTrackedReservations.entries,
+  source: initialTrackedReservations.source,
 };
 
 const trackableVenues = [...restaurants, ...bars];
@@ -86,11 +92,16 @@ let hotelMarker;
 let lastMapFilter = null;
 
 function loadTrackedReservations() {
+  const urlEntries = loadTrackedReservationsFromUrl();
+  if (urlEntries.length) {
+    return { entries: urlEntries, source: "link" };
+  }
+
   try {
     const stored = window.localStorage.getItem(trackerStorageKey);
-    return stored ? JSON.parse(stored) : [];
+    return { entries: stored ? JSON.parse(stored) : [], source: "device" };
   } catch {
-    return [];
+    return { entries: [], source: "device" };
   }
 }
 
@@ -98,6 +109,42 @@ function saveTrackedReservations() {
   try {
     window.localStorage.setItem(trackerStorageKey, JSON.stringify(trackerState.entries));
   } catch {}
+
+  syncTrackedReservationsToUrl();
+}
+
+function loadTrackedReservationsFromUrl() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const encoded = params.get(trackerUrlParam);
+    if (!encoded) {
+      return [];
+    }
+
+    const json = decodeURIComponent(window.atob(encoded));
+    const parsed = JSON.parse(json);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function buildTrackedReservationsUrl() {
+  const url = new URL(window.location.href);
+
+  if (!trackerState.entries.length) {
+    url.searchParams.delete(trackerUrlParam);
+    return url.toString();
+  }
+
+  const encoded = window.btoa(encodeURIComponent(JSON.stringify(trackerState.entries)));
+  url.searchParams.set(trackerUrlParam, encoded);
+  return url.toString();
+}
+
+function syncTrackedReservationsToUrl() {
+  const nextUrl = buildTrackedReservationsUrl();
+  window.history.replaceState({}, "", nextUrl);
 }
 
 function formatDate(date, options) {
@@ -464,6 +511,12 @@ function renderTracker() {
   const conflictEntryCount = entries.filter((entry) => conflictsById.get(entry.id).length > 0).length;
 
   trackerCountEl.textContent = `${entries.length} booking${entries.length === 1 ? "" : "s"} logged`;
+  trackerSyncStatusEl.textContent =
+    trackerState.source === "link"
+      ? "Loaded from sync link"
+      : entries.length
+        ? "Device + link updated"
+        : "Link ready";
 
   if (!entries.length) {
     trackerSummaryTitleEl.textContent = "Nothing booked yet";
@@ -981,6 +1034,7 @@ trackerFormEl.addEventListener("submit", (event) => {
     notes: trackerNotesEl.value.trim(),
   });
 
+  trackerState.source = "device";
   saveTrackedReservations();
   renderTracker();
   trackerFormEl.reset();
@@ -995,6 +1049,25 @@ trackerDayBoardEl.addEventListener("click", (event) => {
   }
 
   trackerState.entries = trackerState.entries.filter((entry) => entry.id !== trigger.dataset.removeBooking);
+  trackerState.source = "device";
+  saveTrackedReservations();
+  renderTracker();
+});
+
+trackerCopyLinkEl.addEventListener("click", async () => {
+  const link = buildTrackedReservationsUrl();
+
+  try {
+    await navigator.clipboard.writeText(link);
+    trackerSyncStatusEl.textContent = "Sync link copied";
+  } catch {
+    trackerSyncStatusEl.textContent = "Copy failed";
+  }
+});
+
+trackerClearAllEl.addEventListener("click", () => {
+  trackerState.entries = [];
+  trackerState.source = "device";
   saveTrackedReservations();
   renderTracker();
 });
@@ -1034,6 +1107,9 @@ buildCuisineOptions();
 buildTrackerVenueOptions();
 setTrackerDefaults();
 renderTracker();
+if (trackerState.entries.length && trackerState.source === "device") {
+  syncTrackedReservationsToUrl();
+}
 setBoardView(boardState.view);
 renderHeroStats();
 renderAlarmBoard();
