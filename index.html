@@ -107,7 +107,20 @@
               <div class="tracker-form-grid">
                 <label class="tracker-field tracker-field-venue" for="tracker-venue">
                   <span class="select-label">Venue</span>
-                  <input id="tracker-venue" name="venue" list="tracker-venue-options" placeholder="Lilia, Semma, Double Chicken Please..." required />
+                  <div class="tracker-venue-shell">
+                    <input
+                      id="tracker-venue"
+                      name="venue"
+                      placeholder="Lilia, Semma, Double Chicken Please..."
+                      autocomplete="off"
+                      aria-autocomplete="list"
+                      aria-expanded="false"
+                      aria-controls="tracker-venue-results"
+                      required
+                    />
+                    <div id="tracker-venue-results" class="tracker-venue-results" hidden></div>
+                  </div>
+                  <span class="tracker-field-hint">Start typing to search the venues already on the board.</span>
                 </label>
 
                 <label class="tracker-field" for="tracker-date">
@@ -138,8 +151,6 @@
                   <strong id="tracker-sync-status">Link ready</strong>
                 </div>
               </div>
-
-              <datalist id="tracker-venue-options"></datalist>
             </form>
 
             <aside class="tracker-sidebar">

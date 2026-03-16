@@ -26,7 +26,7 @@ const trackerDateEl = document.getElementById("tracker-date");
 const trackerTimeEl = document.getElementById("tracker-time");
 const trackerPartySizeEl = document.getElementById("tracker-party-size");
 const trackerNotesEl = document.getElementById("tracker-notes");
-const trackerVenueOptionsEl = document.getElementById("tracker-venue-options");
+const trackerVenueResultsEl = document.getElementById("tracker-venue-results");
 const trackerCountEl = document.getElementById("tracker-count");
 const trackerCopyLinkEl = document.getElementById("tracker-copy-link");
 const trackerClearAllEl = document.getElementById("tracker-clear-all");
@@ -452,17 +452,77 @@ function setTrackerDefaults() {
   trackerPartySizeEl.value = trackerPartySizeEl.value || "2";
 }
 
-function buildTrackerVenueOptions() {
-  trackerVenueOptionsEl.innerHTML = trackableVenues
-    .slice()
-    .sort((a, b) => a.name.localeCompare(b.name))
-    .map((item) => `<option value="${item.name}"></option>`)
-    .join("");
-}
-
 function findTrackableVenueByName(name) {
   const target = name.trim().toLowerCase();
   return trackableVenues.find((item) => item.name.toLowerCase() === target) || null;
+}
+
+function getTrackableVenueById(id) {
+  return trackableVenues.find((item) => item.id === id) || null;
+}
+
+function getVenueSearchMatches(query) {
+  const target = query.trim().toLowerCase();
+  if (!target) {
+    return [];
+  }
+
+  const startsWith = [];
+  const contains = [];
+
+  trackableVenues.forEach((item) => {
+    const haystack = `${item.name} ${item.neighborhood} ${item.cuisine || item.style || ""}`.toLowerCase();
+    if (!haystack.includes(target)) {
+      return;
+    }
+
+    if (item.name.toLowerCase().startsWith(target)) {
+      startsWith.push(item);
+      return;
+    }
+
+    contains.push(item);
+  });
+
+  return [...startsWith, ...contains].slice(0, 8);
+}
+
+function setTrackerVenueSelection(item) {
+  trackerVenueEl.value = item.name;
+  trackerVenueEl.dataset.selectedVenueId = item.id;
+  trackerVenueEl.setCustomValidity("");
+  hideTrackerVenueResults();
+}
+
+function hideTrackerVenueResults() {
+  trackerVenueResultsEl.hidden = true;
+  trackerVenueEl.setAttribute("aria-expanded", "false");
+}
+
+function renderTrackerVenueResults(query) {
+  const matches = getVenueSearchMatches(query);
+
+  if (!query.trim()) {
+    hideTrackerVenueResults();
+    return matches;
+  }
+
+  trackerVenueResultsEl.hidden = false;
+  trackerVenueEl.setAttribute("aria-expanded", "true");
+  trackerVenueResultsEl.innerHTML = matches.length
+    ? matches
+        .map(
+          (item) => `
+            <button class="tracker-venue-option" type="button" data-venue-id="${item.id}">
+              <strong>${item.name}</strong>
+              <span>${item.neighborhood} • ${item.type || (item.cuisine ? "Restaurant" : "Bar")}</span>
+            </button>
+          `,
+        )
+        .join("")
+    : `<div class="tracker-venue-empty">No board venue matches that search yet. Use one of the names from the planner cards.</div>`;
+
+  return matches;
 }
 
 function sortTrackedReservations(entries) {
@@ -557,7 +617,7 @@ function renderTracker() {
             ${dayEntries
               .map((entry) => {
                 const venueMatch = entry.venueId
-                  ? trackableVenues.find((item) => item.id === entry.venueId)
+                  ? getTrackableVenueById(entry.venueId)
                   : findTrackableVenueByName(entry.venue);
                 const hasConflict = conflictsById.get(entry.id).length > 0;
 
@@ -1018,16 +1078,90 @@ quickViewLinks.forEach((link) => {
   });
 });
 
+trackerVenueEl.addEventListener("input", () => {
+  trackerVenueEl.setCustomValidity("");
+  const exactMatch = findTrackableVenueByName(trackerVenueEl.value);
+  if (exactMatch) {
+    trackerVenueEl.dataset.selectedVenueId = exactMatch.id;
+  } else {
+    delete trackerVenueEl.dataset.selectedVenueId;
+  }
+
+  renderTrackerVenueResults(trackerVenueEl.value);
+});
+
+trackerVenueEl.addEventListener("focus", () => {
+  if (trackerVenueEl.value.trim()) {
+    renderTrackerVenueResults(trackerVenueEl.value);
+  }
+});
+
+[trackerDateEl, trackerTimeEl, trackerPartySizeEl, trackerNotesEl].forEach((element) => {
+  element.addEventListener("focus", () => {
+    hideTrackerVenueResults();
+  });
+});
+
+trackerVenueEl.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    hideTrackerVenueResults();
+    return;
+  }
+
+  if (event.key === "Enter" && !trackerVenueResultsEl.hidden) {
+    const firstMatch = getVenueSearchMatches(trackerVenueEl.value)[0];
+    if (firstMatch && !findTrackableVenueByName(trackerVenueEl.value)) {
+      event.preventDefault();
+      setTrackerVenueSelection(firstMatch);
+    }
+  }
+});
+
+trackerVenueResultsEl.addEventListener("click", (event) => {
+  const trigger = event.target.closest("[data-venue-id]");
+  if (!trigger) {
+    return;
+  }
+
+  const match = getTrackableVenueById(trigger.dataset.venueId);
+  if (match) {
+    setTrackerVenueSelection(match);
+    trackerDateEl.focus();
+  }
+});
+
+document.addEventListener("click", (event) => {
+  if (!event.target.closest(".tracker-field-venue")) {
+    hideTrackerVenueResults();
+  }
+});
+
 trackerFormEl.addEventListener("submit", (event) => {
   event.preventDefault();
 
   const venueName = trackerVenueEl.value.trim();
-  const matchedVenue = findTrackableVenueByName(venueName);
+  let matchedVenue = trackerVenueEl.dataset.selectedVenueId
+    ? getTrackableVenueById(trackerVenueEl.dataset.selectedVenueId)
+    : findTrackableVenueByName(venueName);
+
+  if (!matchedVenue) {
+    const matches = getVenueSearchMatches(venueName);
+    if (matches.length === 1) {
+      matchedVenue = matches[0];
+      setTrackerVenueSelection(matchedVenue);
+    }
+  }
+
+  if (!matchedVenue) {
+    trackerVenueEl.setCustomValidity("Choose a venue from the existing planner list.");
+    trackerVenueEl.reportValidity();
+    return;
+  }
 
   trackerState.entries.push({
     id: window.crypto?.randomUUID ? window.crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
-    venue: venueName,
-    venueId: matchedVenue?.id || null,
+    venue: matchedVenue.name,
+    venueId: matchedVenue.id,
     date: trackerDateEl.value,
     time: trackerTimeEl.value,
     partySize: Number(trackerPartySizeEl.value),
@@ -1038,7 +1172,9 @@ trackerFormEl.addEventListener("submit", (event) => {
   saveTrackedReservations();
   renderTracker();
   trackerFormEl.reset();
+  delete trackerVenueEl.dataset.selectedVenueId;
   setTrackerDefaults();
+  hideTrackerVenueResults();
   trackerVenueEl.focus();
 });
 
@@ -1104,7 +1240,6 @@ mapFilterButtons.forEach((button) => {
 });
 
 buildCuisineOptions();
-buildTrackerVenueOptions();
 setTrackerDefaults();
 renderTracker();
 if (trackerState.entries.length && trackerState.source === "device") {

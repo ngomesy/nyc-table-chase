@@ -544,6 +544,10 @@ h3 {
   gap: 8px;
 }
 
+.tracker-venue-shell {
+  position: relative;
+}
+
 .tracker-field-venue,
 .tracker-field-notes {
   grid-column: span 4;
@@ -563,6 +567,72 @@ h3 {
 .tracker-field input:focus-visible {
   outline: 3px solid rgba(79, 125, 255, 0.35);
   outline-offset: 2px;
+}
+
+.tracker-field-hint {
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.tracker-venue-results {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 12;
+  display: grid;
+  gap: 8px;
+  max-height: 280px;
+  padding: 10px;
+  overflow: auto;
+  border: 2px solid var(--ink);
+  border-radius: 18px;
+  background: var(--paper-strong);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.18);
+}
+
+.tracker-venue-results[hidden] {
+  display: none;
+}
+
+.tracker-venue-option,
+.tracker-venue-empty {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+}
+
+.tracker-venue-option {
+  border: 1px solid rgba(17, 17, 17, 0.1);
+  background: #ffffff;
+  color: var(--ink);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.tracker-venue-option:hover,
+.tracker-venue-option:focus-visible {
+  border-color: var(--ink);
+  background: rgba(255, 213, 77, 0.12);
+  outline: none;
+}
+
+.tracker-venue-option strong,
+.tracker-venue-option span {
+  display: block;
+}
+
+.tracker-venue-option span,
+.tracker-venue-empty {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.tracker-venue-empty {
+  border: 1px dashed rgba(17, 17, 17, 0.18);
+  background: rgba(17, 17, 17, 0.03);
 }
 
 .tracker-actions {
