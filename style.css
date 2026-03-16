@@ -1063,6 +1063,10 @@ h3 {
   background: var(--signal);
 }
 
+.map-pin.cocktail {
+  background: var(--subway);
+}
+
 .map-pin.dive {
   background: var(--dive);
 }

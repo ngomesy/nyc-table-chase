@@ -408,24 +408,58 @@ function matchesCocktailFilters(item) {
   return item.priority === cocktailState.filter;
 }
 
+function buildMapVenueEntries() {
+  const byName = new Map();
+
+  const register = (item, mapKind) => {
+    const key = item.name.toLowerCase();
+    const existing = byName.get(key);
+
+    if (!existing) {
+      byName.set(key, {
+        ...item,
+        type: mapKind === "restaurant" ? "restaurant" : "bar",
+        mapKinds: [mapKind],
+      });
+      return;
+    }
+
+    existing.mapKinds = [...new Set([...existing.mapKinds, mapKind])];
+
+    // Prefer the cocktail-board version for shared venues so the cocktail filter can surface it.
+    if (mapKind === "cocktail") {
+      Object.assign(existing, {
+        ...item,
+        type: "bar",
+        mapKinds: existing.mapKinds,
+      });
+    }
+  };
+
+  restaurants.forEach((item) => register(item, "restaurant"));
+  bars.forEach((item) => register(item, "bar"));
+  cocktailBars.forEach((item) => register(item, "cocktail"));
+
+  return [...byName.values()];
+}
+
 function buildMapItems() {
-  const allItems = [
-    ...restaurants.map((item) => ({ ...item, type: "restaurant" })),
-    ...bars.map((item) => ({ ...item, type: "bar" })),
-    ...cocktailBars.map((item) => ({ ...item, type: "bar" })),
-  ].filter((item, index, items) => items.findIndex((entry) => entry.name === item.name) === index);
+  const allItems = buildMapVenueEntries();
 
   if (mapState.filter === "all") {
     return allItems;
   }
   if (mapState.filter === "restaurants") {
-    return allItems.filter((item) => item.type === "restaurant");
+    return allItems.filter((item) => item.mapKinds.includes("restaurant"));
   }
   if (mapState.filter === "bars") {
-    return allItems.filter((item) => item.type === "bar");
+    return allItems.filter((item) => item.mapKinds.includes("bar"));
+  }
+  if (mapState.filter === "cocktails") {
+    return allItems.filter((item) => item.mapKinds.includes("cocktail"));
   }
   if (mapState.filter === "dives") {
-    return allItems.filter((item) => item.type === "bar" && item.style === "dive");
+    return allItems.filter((item) => item.mapKinds.includes("bar") && item.style === "dive");
   }
 
   return allItems;
@@ -467,6 +501,29 @@ function getDistanceFromHotel(item) {
 
 function formatDistance(distance) {
   return `Approx. ${distance.toFixed(1)} mi from hotel`;
+}
+
+function getMapPinClass(item) {
+  if (item.style === "dive") {
+    return "dive";
+  }
+  if (item.mapKinds?.includes("cocktail")) {
+    return "cocktail";
+  }
+  if (item.style === "listening" || item.style === "rooftop") {
+    return item.style;
+  }
+  return item.type;
+}
+
+function getMapVenueLabel(item) {
+  if (item.mapKinds?.includes("restaurant")) {
+    return "Restaurant";
+  }
+  if (item.mapKinds?.includes("cocktail")) {
+    return "Cocktail bar";
+  }
+  return "Bar";
 }
 
 function getNeighborhoodDistance(neighborhoodKey) {
@@ -698,7 +755,7 @@ function renderTracker() {
 function createMapIcon(item, selected) {
   return L.divIcon({
     className: "map-marker-shell",
-    html: `<span class="map-pin ${item.type} ${item.style || ""} ${selected ? "is-selected" : ""}"></span>`,
+    html: `<span class="map-pin ${getMapPinClass(item)} ${selected ? "is-selected" : ""}"></span>`,
     iconSize: [18, 18],
     iconAnchor: [9, 9],
   });
@@ -977,13 +1034,14 @@ function renderMapDetail(items) {
   const state = getBookingState(selected, new Date());
   const primaryLink = getPrimaryLink(selected);
   const distance = formatDistance(getDistanceFromHotel(selected));
+  const isRestaurant = selected.mapKinds?.includes("restaurant");
   const secondaryMeta =
-    selected.type === "restaurant"
+    isRestaurant
       ? `${selected.neighborhood} • ${selected.cuisine} • ${selected.spend} • Est. for 2 ${selected.spendFor2}`
       : `${selected.neighborhood} • ${selected.style.charAt(0).toUpperCase()}${selected.style.slice(1)} • ${selected.spend}`;
 
   mapDetailEl.innerHTML = `
-    <div class="detail-kicker">${selected.type === "restaurant" ? "Restaurant" : "Bar"} • ${
+    <div class="detail-kicker">${getMapVenueLabel(selected)} • ${
       priorityMeta[selected.priority].label
     }</div>
     <h3>${selected.name}</h3>
